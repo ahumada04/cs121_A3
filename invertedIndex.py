@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import tokenizer
 
 
 class Indexer:
@@ -10,37 +11,40 @@ class Indexer:
         self.doc_id = 0
 
     # HIGH PRIORITY
-    def traverse(self, path):
-        root_dir = Path("DEV")
+    def traverse(self, path_name):
+        if Path("inverted_index.json") and Path("id_to_url"):
+            self.start()
+
+        root_dir = Path(path_name)
         try:
             for sub_dir in root_dir.glob("**"):  # Grabs subdirectories (effectively subdomains) for glob
                 for json_file in sub_dir.glob("*.json"):  # Grabs actual json files attached to each subdomain
                     try:
-                        with open(json_file, "r", encoding="utf-8") as file:
-                            #  RETRIEVE WEBSITE DATA HERE, CURRENTLY HAVE DUMMY CODE
-                            data = json.load(file)
-                            url = data["url"]
-                            # file_parser(data["..."[)
-                            # print(f"Testing accessing json data {url}")
+                        url, content = self.file_parser(json_file)
+                        self.push_to_inverted_index(url, content)
 
-                    # Ignore these excepts' for now, unlikely to be called
                     except json.JSONDecodeError:
                         print(f"Invalid JSON in {json_file}")
                     except PermissionError:
                         print(f"Permission denied for {json_file}")
                     except Exception as e:
                         print(f"Unexpected error with {json_file}: {e}")
+            self.save_files("inverted_index.json", "id_to_url.json")
         except Exception as e:
             print(f"Unexpected error: {e}")
 
-
-    def file_parser(self):
-        pass
+    @staticmethod
+    def file_parser(json_file):
+        with open(json_file, "r", encoding="utf-8") as file:
+            data = json.load(file)
+            url = data["url"]
+            content = data["content"]
+        return url, content
 
     # HIGH PRIORITY
     def push_to_inverted_index(self, url, content):
         current_id = self.assign_id(url, content)
-        tokens = tokenize(content)
+        tokens = tokenizer.tokenize(content)
 
         for token in tokens.keys():
             frequency = tokens[token]
@@ -63,6 +67,11 @@ class Indexer:
         with open(file_path, "r") as file:
             self.inverted_index = json.load(file)
 
+    def start(self):
+        self.load_id_to_url("inverted_index.json")
+        self.load_inverted_index("id_to_url.json")
+        self.load_doc_id()
+
     # low priority
     def load_id_to_url(self, file_path):
         with open(file_path, "r") as file:
@@ -82,15 +91,4 @@ class Indexer:
 
     # low priority
     def grab_last_indexed(self):
-        pass
-
-
-def tokenize(content) -> dict:
-    pass
-
-
-
-
-
-
-
+        return self.id_to_url[self.doc_id - 1][0]
