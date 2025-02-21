@@ -1,4 +1,4 @@
-import pathlib
+from pathlib import Path
 import json
 
 
@@ -11,7 +11,28 @@ class Indexer:
 
     # HIGH PRIORITY
     def traverse(self, path):
-        pass
+        root_dir = Path("DEV")
+        try:
+            for sub_dir in root_dir.glob("**"):  # Grabs subdirectories (effectively subdomains) for glob
+                for json_file in sub_dir.glob("*.json"):  # Grabs actual json files attached to each subdomain
+                    try:
+                        with open(json_file, "r", encoding="utf-8") as file:
+                            #  RETRIEVE WEBSITE DATA HERE, CURRENTLY HAVE DUMMY CODE
+                            data = json.load(file)
+                            url = data["url"]
+                            # file_parser(data["..."[)
+                            # print(f"Testing accessing json data {url}")
+
+                    # Ignore these excepts' for now, unlikely to be called
+                    except json.JSONDecodeError:
+                        print(f"Invalid JSON in {json_file}")
+                    except PermissionError:
+                        print(f"Permission denied for {json_file}")
+                    except Exception as e:
+                        print(f"Unexpected error with {json_file}: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
 
     def file_parser(self):
         pass
