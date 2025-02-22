@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import tokenizer
+import os
 
 
 class Indexer:
@@ -12,8 +13,10 @@ class Indexer:
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        if Path("inverted_index.json") and Path("id_to_url"):
-            self.start()
+        os.remove("inverted_index.json")
+
+        if Path("id_to_url"):
+            os.remove("id_to_url")
 
         root_dir = Path(path_name)
         try:
@@ -45,9 +48,9 @@ class Indexer:
     def push_to_inverted_index(self, url, content):
         current_id = self.assign_id(url, content)
         tokens = tokenizer.tokenize(content)
+        tokens_dict = tokenizer.computeWordFrequencies(tokens)
 
-        for token in tokens.keys():
-            frequency = tokens[token]
+        for token, frequency in tokens_dict.items():
             if token not in self.inverted_index:
                 self.inverted_index[token] = {current_id: frequency}
             else:
@@ -55,22 +58,24 @@ class Indexer:
 
     # HIGH PRIORITY
     def assign_id(self, url, content):
-        if self.doc_id in self.id_to_url:
+        if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, self.hasher.hash(content))
-            return self.doc_id
+            self.doc_id += 1
+            return self.doc_id - 1
         else:
             self.doc_id = max(self.id_to_url.keys()) + 1
-            self.assign_id(content, url)
+            self.assign_id(url, content)
+
+    # TBD
+    def reload(self):
+        self.load_id_to_url("inverted_index.json")
+        self.load_inverted_index("id_to_url.json")
+        self.load_doc_id()
 
     # low priority
     def load_inverted_index(self, file_path):
         with open(file_path, "r") as file:
             self.inverted_index = json.load(file)
-
-    def start(self):
-        self.load_id_to_url("inverted_index.json")
-        self.load_inverted_index("id_to_url.json")
-        self.load_doc_id()
 
     # low priority
     def load_id_to_url(self, file_path):

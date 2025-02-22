@@ -1,4 +1,5 @@
 import invertedIndex
+import hasher
 
 
 def main():

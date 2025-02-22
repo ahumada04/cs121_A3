@@ -18,14 +18,14 @@ STOP_WORDS = [
     "would", "you", "your", "yours", "yourself", "yourselves"]
 
 
-def tokenize(content: str) -> dict:
+def tokenize(content: str) -> list:
     if not content:
-        return {}
+        return []
     else:
         pattern = r"[a-zA-Z0-9]+"
     # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
         token_list = re.findall(pattern, content.lower())
-        return computeWordFrequencies(token_list)
+        return token_list
 
 
 def computeWordFrequencies(token_list: list) -> dict:
