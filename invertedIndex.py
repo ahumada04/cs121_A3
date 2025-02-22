@@ -46,9 +46,9 @@ class Indexer:
 
     # HIGH PRIORITY
     def push_to_inverted_index(self, url, content):
-        current_id = self.assign_id(url, content)
         tokens = tokenizer.tokenize(content)
         tokens_dict = tokenizer.computeWordFrequencies(tokens)
+        current_id = self.assign_id(url, tokens)
 
         for token, frequency in tokens_dict.items():
             if token not in self.inverted_index:
@@ -57,14 +57,14 @@ class Indexer:
                 self.inverted_index[token].update({current_id: frequency})
 
     # HIGH PRIORITY
-    def assign_id(self, url, content):
+    def assign_id(self, url: str, tokens: list):
         if self.doc_id not in self.id_to_url:
-            self.id_to_url[self.doc_id] = (url, self.hasher.hash(content))
+            self.id_to_url[self.doc_id] = (url, self.hasher.hash(tokens))
             self.doc_id += 1
             return self.doc_id - 1
         else:
             self.doc_id = max(self.id_to_url.keys()) + 1
-            self.assign_id(url, content)
+            self.assign_id(url, tokens)
 
     # TBD
     def reload(self):
