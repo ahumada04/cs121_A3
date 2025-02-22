@@ -14,10 +14,10 @@ class Indexer:
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        if Path("inverted_index.json"):
+        if not os.path.exists("inverted_index.json"):
             os.remove("inverted_index.json")
 
-        if Path("id_to_url"):
+        if not os.path.exists("id_to_url"):
             os.remove("id_to_url")
 
         root_dir = Path(path_name)
