@@ -3,7 +3,9 @@ import hasher
 
 
 def main():
-    pass
+    simhash = hasher.SimHash()
+    indexer = invertedIndex.Indexer(simhash)
+    indexer.traverse("DEV")
 
 
 if __name__ == "__main__":

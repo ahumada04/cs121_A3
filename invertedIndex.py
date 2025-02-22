@@ -13,7 +13,8 @@ class Indexer:
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        os.remove("inverted_index.json")
+        if Path("inverted_index.json"):
+            os.remove("inverted_index.json")
 
         if Path("id_to_url"):
             os.remove("id_to_url")
