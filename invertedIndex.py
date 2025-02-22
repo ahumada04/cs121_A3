@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import tokenizer
 import os
+from bs4 import BeautifulSoup
 
 
 class Indexer:
@@ -42,7 +43,9 @@ class Indexer:
         with open(json_file, "r", encoding="utf-8") as file:
             data = json.load(file)
             url = data["url"]
-            content = data["content"]
+            # content = data["content"]
+            soup = BeautifulSoup(data["content"], 'html.parser')
+            content = soup.get_text()
         return url, content
 
     # HIGH PRIORITY
