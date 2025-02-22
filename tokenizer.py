@@ -16,6 +16,7 @@ import re
 #     "under", "until", "up", "very", "was", "we", "were", "what",
 #     "when", "where", "which", "while", "who", "whom", "why", "with",
 #     "would", "you", "your", "yours", "yourself", "yourselves"]
+STOP_WORDS = []
 
 
 def tokenize(content: str) -> list:

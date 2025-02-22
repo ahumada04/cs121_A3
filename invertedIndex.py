@@ -14,18 +14,20 @@ class Indexer:
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        if not os.path.exists("inverted_index.json"):
+        if os.path.exists("inverted_index.json"):
             os.remove("inverted_index.json")
 
-        if not os.path.exists("id_to_url"):
+        if os.path.exists("id_to_url.json"):
             os.remove("id_to_url")
 
         root_dir = Path(path_name)
         try:
             for sub_dir in root_dir.glob("**"):  # Grabs subdirectories (effectively subdomains) for glob
+                print(sub_dir)
                 for json_file in sub_dir.glob("*.json"):  # Grabs actual json files attached to each subdomain
                     try:
                         url, content = self.file_parser(json_file)
+                        # print(url)
                         self.push_to_inverted_index(url, content)
 
                     except json.JSONDecodeError:
@@ -44,7 +46,7 @@ class Indexer:
             data = json.load(file)
             url = data["url"]
             # content = data["content"]
-            soup = BeautifulSoup(data["content"], 'html.parser')
+            soup = BeautifulSoup(data["content"], "lxml-xml")
             content = soup.get_text()
         return url, content
 
@@ -63,7 +65,7 @@ class Indexer:
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
         if self.doc_id not in self.id_to_url:
-            self.id_to_url[self.doc_id] = (url, self.hasher.hash(tokens))
+            self.id_to_url[self.doc_id] = (url, self.hasher.compute(tokens))
             self.doc_id += 1
             return self.doc_id - 1
         else:
