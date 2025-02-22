@@ -18,12 +18,14 @@ class Indexer:
             os.remove("inverted_index.json")
 
         if os.path.exists("id_to_url.json"):
-            os.remove("id_to_url")
+            os.remove("id_to_url.json")
 
         root_dir = Path(path_name)
         try:
+            count = 0
             for sub_dir in root_dir.glob("**"):  # Grabs subdirectories (effectively subdomains) for glob
-                print(sub_dir)
+                count += 1
+                print(count)
                 for json_file in sub_dir.glob("*.json"):  # Grabs actual json files attached to each subdomain
                     try:
                         url, content = self.file_parser(json_file)
