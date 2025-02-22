@@ -16,7 +16,6 @@ import re
 #     "under", "until", "up", "very", "was", "we", "were", "what",
 #     "when", "where", "which", "while", "who", "whom", "why", "with",
 #     "would", "you", "your", "yours", "yourself", "yourselves"]
-STOP_WORDS = []
 
 
 def tokenize(content: str) -> list:
@@ -33,9 +32,9 @@ def computeWordFrequencies(token_list: list) -> dict:
     token_dict = {}
 
     for token in sorted(token_list):
-        if token in STOP_WORDS:
-            continue
-        elif token in token_dict:
+        # if token in STOP_WORDS:
+        #     continue
+        if token in token_dict:
             token_dict[token] += 1
         else:
             token_dict[token] = 1
