@@ -49,6 +49,14 @@ class Indexer:
             url = data["url"]
             # content = data["content"]
             soup = BeautifulSoup(data["content"], "lxml-xml")
+            ## MILESTONE 2 STUFF UNCOMMENT
+            # Extract different text parts (titles, headings, bold)
+            # title = " ".join([tag.get_text() for tag in soup.find_all("title")]) * 3 
+            # headings = " ".join([tag.get_text() for tag in soup.find_all(["h1", "h2", "h3"])]) * 2
+            # bold_text = " ".join([tag.get_text() for tag in soup.find_all(["b", "strong"])]) * 1.5
+
+            # # Combine with regular text
+            # content = " ".join([title, headings, bold_text, soup.get_text()])
             content = soup.get_text()
         return url, content
 
