@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 class Indexer:
     def __init__(self, hasher):
         self.hasher = hasher
-        self.inverted_index = {}  # { token: { docId : (freq) }
+        self.inverted_index = {}  # { token: { docId : (freq, bold, position) }
         self.id_to_url = {}  # { docID: (url, hash) }
         self.doc_id = 0
 
@@ -28,9 +28,8 @@ class Indexer:
                 print(count)
                 for json_file in sub_dir.glob("*.json"):  # Grabs actual json files attached to each subdomain
                     try:
-                        url, content = self.file_parser(json_file)
-                        # print(url)
-                        self.push_to_inverted_index(url, content)
+                        url, content, title, heading, bold_text = self.file_parser(json_file)
+                        self.push_to_inverted_index(url, content, title, heading, bold_text)
 
                     except json.JSONDecodeError:
                         print(f"Invalid JSON in {json_file}")
@@ -43,34 +42,49 @@ class Indexer:
             print(f"Unexpected error: {e}")
 
     @staticmethod
+    # ERICK: json dump between 
     def file_parser(json_file):
         with open(json_file, "r", encoding="utf-8") as file:
             data = json.load(file)
             url = data["url"]
             # content = data["content"]
             soup = BeautifulSoup(data["content"], "lxml-xml")
-            ## MILESTONE 2 STUFF UNCOMMENT
-            # Extract different text parts (titles, headings, bold)
-            # title = " ".join([tag.get_text() for tag in soup.find_all("title")]) * 3 
-            # headings = " ".join([tag.get_text() for tag in soup.find_all(["h1", "h2", "h3"])]) * 2
-            # bold_text = " ".join([tag.get_text() for tag in soup.find_all(["b", "strong"])]) * 1.5
+            # Extract different text parts (text, titles, headings, bold)
+            content = soup.get_text()                                                          # ARBITRARY SCORES FOR NOW
+            title = " ".join([tag.get_text() for tag in soup.find_all("title")])               # x2 score multiplier
+            heading = " ".join([tag.get_text() for tag in soup.find_all(["h1", "h2", "h3"])])  # x1.5 score multiplier
+            bold_text = " ".join([tag.get_text() for tag in soup.find_all(["b", "strong"])])   # x1.2 score multiplier
 
-            # # Combine with regular text
-            # content = " ".join([title, headings, bold_text, soup.get_text()])
-            content = soup.get_text()
-        return url, content
+        return url, content, title, heading, bold_text
 
     # HIGH PRIORITY
-    def push_to_inverted_index(self, url, content):
+    # MODIFIED
+    # Updating with pran code
+    def push_to_inverted_index(self, url, content, title, heading, bold_text):
+        # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
         tokens_dict = tokenizer.computeWordFrequencies(tokens)
+
+        title_set = set(tokenizer.tokenize(title))
+        heading_set = tokenizer.computeWordFrequencies(heading)
+        bold_set = tokenizer.tokenize(bold_text)
+
         current_id = self.assign_id(url, tokens)
 
         for token, frequency in tokens_dict.items():
+            # Fluffing up frequency count within a document to increase TF-IDF score
+            # Update scores AS WE GO
+            if token in title_set:
+                frequency = frequency * 2
+            if token in heading_set:
+                frequency = frequency * 1.5
+            if token in bold_set:
+                frequency = frequency * 1.2
             if token not in self.inverted_index:
                 self.inverted_index[token] = {current_id: frequency}
             else:
                 self.inverted_index[token].update({current_id: frequency})
+
 
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):

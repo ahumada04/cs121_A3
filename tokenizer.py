@@ -38,5 +38,5 @@ def computeWordFrequencies(token_list: list) -> dict:
             token_dict[token] += 1
         else:
             token_dict[token] = 1
-
-    return dict(sorted(token_dict.items(), key=lambda item: item[1], reverse=True))
+    return token_dict
+    # return dict(sorted(token_dict.items(), key=lambda item: item[1], reverse=True))
