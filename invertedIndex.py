@@ -127,3 +127,37 @@ class Indexer:
     # low priority
     def grab_last_indexed(self):
         return self.id_to_url[self.doc_id - 1][0]
+
+        # ACTUAL QUERY STUFF ________________________________________________________
+    def query_document_match(self, query) -> list:
+        query_tokens = tokenizer.tokenize(query)
+        intersection_queue = []
+
+        for token in query_tokens:
+            if token in self.inverted_index:
+                intersection_queue.append(list(self.inverted_index[token].keys()))
+            else:
+                return []
+
+        intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
+        intersection = intersection_queue[0]
+        for i in range(1, len(intersection_queue)):
+            intersection = self.intersect(intersection, intersection_queue[i])
+
+        return intersection
+
+    @staticmethod
+    def intersect(term_list1, term_list2):
+        answer = []
+        i = 0
+        j = 0
+        while i < len(term_list1) and j < len(term_list2):
+            if term_list1[i] == term_list2[j]:
+                answer.append(term_list1[i])
+                i += 1
+                j += 1
+            elif term_list1[i] > term_list2[j]:
+                j += 1
+            else:
+                i += 1
+        return answer
