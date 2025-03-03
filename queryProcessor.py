@@ -12,14 +12,42 @@ def query_document_match(query) -> list:
     intersection_queue = []
 
     # !!!!! IF RUNNING INTO MEMORY ISSUES REFER TO LINE 3 !!!!!
-    with open(index_path, "rb") as file:
-        inverted_index = orjson.loads(file.read())
+
+
+    # with open(index_path, "rb") as file:
+    #     inverted_index = orjson.loads(file.read())
 
     for token in query_tokens:
-        if token in inverted_index:
-            intersection_queue.append(list(inverted_index[token].keys()))
+        starting_char = token[0]
+        if "0" <= starting_char <= "9":
+            with open("inverted_index_path_0_9.json", "rb") as file:
+                inverted_index = orjson.loads(file.read())
+            if token in inverted_index:
+                intersection_queue.append(list(inverted_index[token].keys()))
+            else:
+                return []
+        elif "a" <= starting_char <= "h":
+            with open("inverted_index_path_a_h.json", "rb") as file:
+                inverted_index = orjson.loads(file.read())
+            if token in inverted_index:
+                intersection_queue.append(list(inverted_index[token].keys()))
+            else:
+                return []
+
+        elif "i" <= starting_char <= "q":
+            with open("inverted_index_path_i_q.json", "rb") as file:
+                inverted_index = orjson.loads(file.read())
+            if token in inverted_index:
+                intersection_queue.append(list(inverted_index[token].keys()))
+            else:
+                return []
         else:
-            return []
+            with open("inverted_index_path_r_z.json", "rb") as file:
+                inverted_index = orjson.loads(file.read())
+            if token in inverted_index:
+                intersection_queue.append(list(inverted_index[token].keys()))
+            else:
+                return []
 
     intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
     intersection = intersection_queue[0]
