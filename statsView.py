@@ -32,7 +32,7 @@ def main():
 def jsonExtract():
     try:
         # Load the JSON file
-        with open("inverted_index.json", 'r', encoding='utf-8') as file:
+        with open("merged.json", 'r', encoding='utf-8') as file:
             tokens = json.load(file)
             # tokens = data[0]
             print(f"Token count: {len(tokens)}")

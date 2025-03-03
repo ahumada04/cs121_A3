@@ -69,7 +69,7 @@ class Indexer:
             data = json.load(file)
             url = data["url"]
             # content = data["content"]
-            soup = BeautifulSoup(data["content"], "lxml-xml")
+            soup = BeautifulSoup(data["content"], "lxml")
             # Extract different text parts (text, titles, headings, bold)
             content = soup.get_text()                                                          # ARBITRARY SCORES FOR NOW
             title = " ".join([tag.get_text() for tag in soup.find_all("title")])               # x2 score multiplier
