@@ -17,8 +17,8 @@ class Indexer:
         self.hasher = hasher
         self.inverted_index_0_9 = {}  # { token: { docId : (freq, bold, position) }
         self.inverted_index_a_h = {}  # { token: { docId : (freq, bold, position) }
-        self.inverted_index_H_q = {}  # { token: { docId : (freq, bold, position) }
-        self.inverted_index_Q_Z = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_i_q = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_r_z = {}  # { token: { docId : (freq, bold, position) }
         self.id_to_url = {}  # { docID: (url, hash) }
         self.doc_id = 0
 
@@ -30,11 +30,11 @@ class Indexer:
         if os.path.exists("inverted_index_a_h.json"):
             os.remove("inverted_index_a_h.json")
 
-        if os.path.exists("inverted_index_H_q.json"):
-            os.remove("inverted_index_H_q.json")
+        if os.path.exists("inverted_index_i_q.json"):
+            os.remove("inverted_index_i_q.json")
 
-        if os.path.exists("inverted_index_Q_Z.json"):
-            os.remove("inverted_index_Q_Z.json")
+        if os.path.exists("inverted_index_r_z.json"):
+            os.remove("inverted_index_r_z.json")
 
         if os.path.exists("id_to_url.json"):
             os.remove("id_to_url.json")
@@ -116,16 +116,16 @@ class Indexer:
                 else:
                     self.inverted_index_a_h[token].update({current_id: frequency})
 
-            elif "H" <= starting_char <= "q":
-                if token not in self.inverted_index_H_q:
-                    self.inverted_index_H_q[token] = {current_id: frequency}
+            elif "i" <= starting_char <= "q":
+                if token not in self.inverted_index_i_q:
+                    self.inverted_index_i_q[token] = {current_id: frequency}
                 else:
-                    self.inverted_index_H_q[token].update({current_id: frequency})
+                    self.inverted_index_i_q[token].update({current_id: frequency})
             else:
-                if token not in self.inverted_index_Q_Z:
-                    self.inverted_index_Q_Z[token] = {current_id: frequency}
+                if token not in self.inverted_index_r_z:
+                    self.inverted_index_r_z[token] = {current_id: frequency}
                 else:
-                    self.inverted_index_Q_Z[token].update({current_id: frequency})
+                    self.inverted_index_r_z[token].update({current_id: frequency})
 
             # self.inverted_index[token].update({current_id: frequency})
 
@@ -148,10 +148,10 @@ class Indexer:
             json.dump(self.inverted_index_a_h, inverted_index_file, indent=4, ensure_ascii=False)
 
         with open("inverted_index_path_H_q.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_H_q, inverted_index_file, indent=4, ensure_ascii=False)
+            json.dump(self.inverted_index_i_q, inverted_index_file, indent=4, ensure_ascii=False)
 
         with open("inverted_index_path_Q_Z.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_Q_Z, inverted_index_file, indent=4, ensure_ascii=False)
+            json.dump(self.inverted_index_r_z, inverted_index_file, indent=4, ensure_ascii=False)
 
         with open(id_to_url_path, "w", encoding="utf-8") as id_to_url_file:
             json.dump(self.id_to_url, id_to_url_file, indent=4, ensure_ascii=False)
@@ -159,7 +159,7 @@ class Indexer:
     @staticmethod
     def merge_files():
         json_files = ["inverted_index_path_0_9.json", "inverted_index_path_a_h.json",
-                      "inverted_index_path_H_q.json", "inverted_index_path_Q_Z.json"]
+                      "inverted_index_path_i_q.json", "inverted_index_path_r_z.json"]
         merged_data = {}
 
         for file in json_files:
