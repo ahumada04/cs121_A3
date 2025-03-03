@@ -12,11 +12,6 @@ def query_document_match(query) -> list:
     intersection_queue = []
 
     # !!!!! IF RUNNING INTO MEMORY ISSUES REFER TO LINE 3 !!!!!
-
-
-    # with open(index_path, "rb") as file:
-    #     inverted_index = orjson.loads(file.read())
-
     for token in query_tokens:
         starting_char = token[0]
         if "0" <= starting_char <= "9":
@@ -58,19 +53,26 @@ def query_document_match(query) -> list:
 
 
 def intersect(term_list1, term_list2):
-    answer = []
-    i = 0
-    j = 0
-    while i < len(term_list1) and j < len(term_list2):
-        if term_list1[i] == term_list2[j]:
-            answer.append(term_list1[i])
-            i += 1
-            j += 1
-        elif term_list1[i] > term_list2[j]:
-            j += 1
-        else:
-            i += 1
-    return answer
+    # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
+    intersection_set = set(term_list1) & set(term_list2)
+    intersection_list = list(intersection_set)
+    intersection_list.sort()
+    return intersection_list
+    # answer = []
+    # i = 0
+    # j = 0
+    # print(f"Intersecting lists of lengths {len(term_list1)} and {len(term_list2)}")
+    # while i < len(term_list1) and j < len(term_list2):
+    #     if term_list1[i] == term_list2[j]:
+    #         answer.append(term_list1[i])
+    #         i += 1
+    #         j += 1
+    #     elif term_list1[i] > term_list2[j]:
+    #         j += 1
+    #     else:
+    #         i += 1
+    # print(f"Intersection result: {len(answer)} common IDs")
+    # return answer
 
 
 def retrieve_urls(id_list):
