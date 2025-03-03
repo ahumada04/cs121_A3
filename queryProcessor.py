@@ -1,17 +1,18 @@
 import tokenizer as tk
-import json
-
+import orjson
+# IMPORTANT: IF YOU ARE RUNNING INTO MEMORY ISSUES WE NEED TO SWITCH BACK TO JSON INSTEAD OF ORJSON!!!!!!!
 
 index_path = "inverted_index.json"
 id_path = "id_to_url.json"
-
+doc_count = 53194
 
 def query_document_match(query) -> list:
     query_tokens = tk.tokenize(query)
     intersection_queue = []
 
-    with open(index_path, "r") as file:
-        inverted_index = json.load(file)
+    # !!!!! IF RUNNING INTO MEMORY ISSUES REFER TO LINE 3 !!!!!
+    with open(index_path, "rb") as file:
+        inverted_index = orjson.loads(file.read())
 
     for token in query_tokens:
         if token in inverted_index:
@@ -48,8 +49,8 @@ def retrieve_urls(id_list):
     retrieved_urls = []
 
     # could pre_load the id_to_url if strapped for time
-    with open(id_path, "r") as file:
-        url_map = json.load(file)
+    with open(id_path, "rb") as file:
+        url_map = orjson.loads(file.read())
 
     # if desperate for time, we could process as an ordered list for O(N) time.
     for id in id_list:
@@ -57,8 +58,7 @@ def retrieve_urls(id_list):
             retrieved_urls.append(url_map[id][0])
     
     return retrieved_urls
-            
-            
-        
 
+
+# def calc_score(term, docid):
 

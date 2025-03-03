@@ -3,21 +3,25 @@ import queryProcessor as qp
 
 def main():
     # start pre-loading the inverted indexes?
-    print("ASK HERE: ")
-    user_q = input()
+    # keeps running queries until user says stop
+    while(True):
+        user_q = input("ASK PETE: ")
 
-    # grab list of doc ids that match all tokens in user query
-    id_list = qp.query_document_match(user_q)
-    foundURLS = qp.retrieve_urls(id_list)
+        # Retrieving valid urls
+        id_list = qp.query_document_match(user_q)
+        urls = qp.retrieve_urls(id_list)
+        pretty_print(urls)
 
-    pretty_print(foundURLS)
-
+        run_flag = input("\nSearch Again (Y/N)?: ")
+        if run_flag[0].lower() == 'n':
+            break
+    print("Goodbye!")
 
 def pretty_print(urls):
-    if(len(urls) == 0):
+    if len(urls) == 0:
         print("No URLs found")
     else:
-        for i in range(len(urls)):
+        for i in range(min(len(urls), 5)):
             print(f"{i+1}: {urls[i]}")
 
 
