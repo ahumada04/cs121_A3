@@ -6,6 +6,7 @@ index_path = "inverted_index.json"
 id_path = "id_to_url.json"
 doc_count = 53194
 
+
 def query_document_match(query) -> list:
     query_tokens = tk.tokenize(query)
     intersection_queue = []
@@ -28,7 +29,6 @@ def query_document_match(query) -> list:
     return intersection
 
 
-@staticmethod
 def intersect(term_list1, term_list2):
     answer = []
     i = 0

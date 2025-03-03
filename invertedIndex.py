@@ -9,20 +9,32 @@ import hasher
 def main():
     simhash = hasher.SimHash()
     indexer = Indexer(simhash)
-    indexer.traverse("DEV")
+    indexer.traverse("TESTDEV")
 
 
 class Indexer:
     def __init__(self, hasher):
         self.hasher = hasher
-        self.inverted_index = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_0_9 = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_a_h = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_H_q = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_index_Q_Z = {}  # { token: { docId : (freq, bold, position) }
         self.id_to_url = {}  # { docID: (url, hash) }
         self.doc_id = 0
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        if os.path.exists("inverted_index.json"):
-            os.remove("inverted_index.json")
+        if os.path.exists("inverted_index_0_9.json"):
+            os.remove("inverted_index_0_9.json")
+
+        if os.path.exists("inverted_index_a_h.json"):
+            os.remove("inverted_index_a_h.json")
+
+        if os.path.exists("inverted_index_H_q.json"):
+            os.remove("inverted_index_H_q.json")
+
+        if os.path.exists("inverted_index_Q_Z.json"):
+            os.remove("inverted_index_Q_Z.json")
 
         if os.path.exists("id_to_url.json"):
             os.remove("id_to_url.json")
@@ -44,7 +56,9 @@ class Indexer:
                         print(f"Permission denied for {json_file}")
                     except Exception as e:
                         print(f"Unexpected error with {json_file}: {e}")
-            self.save_files("inverted_index.json", "id_to_url.json")
+
+            self.save_files("id_to_url.json")
+            self.merge_files()
         except Exception as e:
             print(f"Unexpected error: {e}")
 
@@ -87,11 +101,33 @@ class Indexer:
                 frequency = frequency * 1.5
             if token in bold_set:
                 frequency = frequency * 1.2
-            if token not in self.inverted_index:
-                self.inverted_index[token] = {current_id: frequency}
-            else:
-                self.inverted_index[token].update({current_id: frequency})
 
+            starting_char = token[0]
+
+            if "0" <= starting_char <= "9":
+                if token not in self.inverted_index_0_9:
+                    self.inverted_index_0_9[token] = {current_id: frequency}
+                else:
+                    self.inverted_index_0_9[token].update({current_id: frequency})
+
+            elif "a" <= starting_char <= "h":
+                if token not in self.inverted_index_a_h:
+                    self.inverted_index_a_h[token] = {current_id: frequency}
+                else:
+                    self.inverted_index_a_h[token].update({current_id: frequency})
+
+            elif "H" <= starting_char <= "q":
+                if token not in self.inverted_index_H_q:
+                    self.inverted_index_H_q[token] = {current_id: frequency}
+                else:
+                    self.inverted_index_H_q[token].update({current_id: frequency})
+            else:
+                if token not in self.inverted_index_Q_Z:
+                    self.inverted_index_Q_Z[token] = {current_id: frequency}
+                else:
+                    self.inverted_index_Q_Z[token].update({current_id: frequency})
+
+            # self.inverted_index[token].update({current_id: frequency})
 
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
@@ -103,74 +139,81 @@ class Indexer:
             self.doc_id = max(self.id_to_url.keys()) + 1
             self.assign_id(url, tokens)
 
-    # TBD
-    def reload(self):
-        self.load_id_to_url("inverted_index.json")
-        self.load_inverted_index("id_to_url.json")
-        self.load_doc_id()
-
     # low priority
-    def load_inverted_index(self, file_path):
-        with open(file_path, "r") as file:
-            self.inverted_index = json.load(file)
+    def save_files(self, id_to_url_path):
+        with open("inverted_index_path_0_9.json", "w", encoding="utf-8") as inverted_index_file:
+            json.dump(self.inverted_index_0_9, inverted_index_file, indent=4, ensure_ascii=False)
 
-    # low priority
-    def load_id_to_url(self, file_path):
-        with open(file_path, "r") as file:
-            self.id_to_url = json.load(file)
+        with open("inverted_index_path_a_h.json", "w", encoding="utf-8") as inverted_index_file:
+            json.dump(self.inverted_index_a_h, inverted_index_file, indent=4, ensure_ascii=False)
 
-    # low priority
-    def load_doc_id(self):
-        self.doc_id = max(self.id_to_url.keys()) + 1
+        with open("inverted_index_path_H_q.json", "w", encoding="utf-8") as inverted_index_file:
+            json.dump(self.inverted_index_H_q, inverted_index_file, indent=4, ensure_ascii=False)
 
-    # low priority
-    def save_files(self, inverted_index_path, id_to_url_path):
-        with open(inverted_index_path, "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index, inverted_index_file, indent=4, ensure_ascii=False)
+        with open("inverted_index_path_Q_Z.json", "w", encoding="utf-8") as inverted_index_file:
+            json.dump(self.inverted_index_Q_Z, inverted_index_file, indent=4, ensure_ascii=False)
 
         with open(id_to_url_path, "w", encoding="utf-8") as id_to_url_file:
             json.dump(self.id_to_url, id_to_url_file, indent=4, ensure_ascii=False)
 
-    # low priority
-    def grab_last_indexed(self):
-        return self.id_to_url[self.doc_id - 1][0]
+    @staticmethod
+    def merge_files():
+        json_files = ["inverted_index_path_0_9.json", "inverted_index_path_a_h.json",
+                      "inverted_index_path_H_q.json", "inverted_index_path_Q_Z.json"]
+        merged_data = {}
+
+        for file in json_files:
+            if os.path.exists(file):
+                try:
+                    with open(file, "r") as f:
+                        data = json.load(f)
+                        for key, value in data.items():
+                            if key in merged_data:
+                                print(f"Warning: Key '{key}' from {file} already exists. Keeping original value.")
+                            else:
+                                merged_data[key] = value
+                except json.JSONDecodeError:
+                    print(f"Skipping {file} due to JSON format error.")
+
+        with open("merged.json", "w") as f:
+            json.dump(merged_data, f, indent=4)
 
 
 if __name__ == "__main__":
     main()
 
 
-        # OG NGYUNE CODE, KEEP FOR NOW JUST INCASE WE RUN INTO WEIRD ERRORS
-    # def query_document_match(self, query) -> list:
-    #     query_tokens = tokenizer.tokenize(query)
-    #     intersection_queue = []
-    #
-    #     for token in query_tokens:
-    #         if token in self.inverted_index:
-    #             intersection_queue.append(list(self.inverted_index[token].keys()))
-    #         else:
-    #             return []
-    #
-    #     intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
-    #     intersection = intersection_queue[0]
-    #     for i in range(1, len(intersection_queue)):
-    #         intersection = self.intersect(intersection, intersection_queue[i])
-    #
-    #     return intersection
-    #
-    # @staticmethod
-    # def intersect(term_list1, term_list2):
-    #     answer = []
-    #     i = 0
-    #     j = 0
-    #     while i < len(term_list1) and j < len(term_list2):
-    #         if term_list1[i] == term_list2[j]:
-    #             answer.append(term_list1[i])
-    #             i += 1
-    #             j += 1
-    #         elif term_list1[i] > term_list2[j]:
-    #             j += 1
-    #         else:
-    #             i += 1
-    #     return answer
-    #
+# OG NGUYEN CODE, KEEP FOR NOW JUST INCASE WE RUN INTO WEIRD ERRORS
+# def query_document_match(self, query) -> list:
+#     query_tokens = tokenizer.tokenize(query)
+#     intersection_queue = []
+#
+#     for token in query_tokens:
+#         if token in self.inverted_index:
+#             intersection_queue.append(list(self.inverted_index[token].keys()))
+#         else:
+#             return []
+#
+#     intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
+#     intersection = intersection_queue[0]
+#     for i in range(1, len(intersection_queue)):
+#         intersection = self.intersect(intersection, intersection_queue[i])
+#
+#     return intersection
+#
+# @staticmethod
+# def intersect(term_list1, term_list2):
+#     answer = []
+#     i = 0
+#     j = 0
+#     while i < len(term_list1) and j < len(term_list2):
+#         if term_list1[i] == term_list2[j]:
+#             answer.append(term_list1[i])
+#             i += 1
+#             j += 1
+#         elif term_list1[i] > term_list2[j]:
+#             j += 1
+#         else:
+#             i += 1
+#     return answer
+#
