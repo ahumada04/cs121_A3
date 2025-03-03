@@ -147,10 +147,10 @@ class Indexer:
         with open("inverted_index_path_a_h.json", "w", encoding="utf-8") as inverted_index_file:
             json.dump(self.inverted_index_a_h, inverted_index_file, indent=4, ensure_ascii=False)
 
-        with open("inverted_index_path_H_q.json", "w", encoding="utf-8") as inverted_index_file:
+        with open("inverted_index_path_i_q.json", "w", encoding="utf-8") as inverted_index_file:
             json.dump(self.inverted_index_i_q, inverted_index_file, indent=4, ensure_ascii=False)
 
-        with open("inverted_index_path_Q_Z.json", "w", encoding="utf-8") as inverted_index_file:
+        with open("inverted_index_path_r_z.json", "w", encoding="utf-8") as inverted_index_file:
             json.dump(self.inverted_index_r_z, inverted_index_file, indent=4, ensure_ascii=False)
 
         with open(id_to_url_path, "w", encoding="utf-8") as id_to_url_file:
