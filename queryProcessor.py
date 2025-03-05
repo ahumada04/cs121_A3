@@ -8,7 +8,7 @@ doc_count = 53194
 
 
 def query_document_match(query) -> list:
-    query_tokens = tk.tokenize(query)
+    query_tokens = set(tk.tokenize(query))
     intersection_queue = []
 
     # !!!!! IF RUNNING INTO MEMORY ISSUES REFER TO LINE 3 !!!!!

@@ -9,7 +9,7 @@ import hasher
 def main():
     simhash = hasher.SimHash()
     indexer = Indexer(simhash)
-    indexer.traverse("TESTDEV")
+    indexer.traverse("DEV")
 
 
 class Indexer:

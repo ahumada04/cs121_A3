@@ -1,5 +1,5 @@
 import queryProcessor as qp
-
+import time
 
 def main():
     # start pre-loading the inverted indexes?
@@ -7,11 +7,14 @@ def main():
     while(True):
         user_q = input("ASK PETE: ")
 
+        start_time = time.time()
         # Retrieving valid urls
         id_list = qp.query_document_match(user_q)
         urls = qp.retrieve_urls(id_list)
         pretty_print(urls)
 
+        elapsed = (time.time() - start_time) * 1000
+        print(f"Query processing took {elapsed:.2f}ms")
         run_flag = input("\nSearch Again (Y/N)?: ")
         if run_flag[0].lower() == 'n':
             break
