@@ -69,7 +69,6 @@ class Indexer:
 
     # HIGH PRIORITY
     # MODIFIED
-    # Updating with pran code
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
