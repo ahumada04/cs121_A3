@@ -5,6 +5,11 @@ import os
 from bs4 import BeautifulSoup
 import hasher
 
+all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+              'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+              'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+              'u', 'v', 'w', 'x', 'y', 'z']
+
 
 def main():
     simhash = hasher.SimHash()
@@ -15,29 +20,13 @@ def main():
 class Indexer:
     def __init__(self, hasher):
         self.hasher = hasher
-        self.inverted_index_0_9 = {}  # { token: { docId : (freq, bold, position) }
-        self.inverted_index_a_h = {}  # { token: { docId : (freq, bold, position) }
-        self.inverted_index_i_q = {}  # { token: { docId : (freq, bold, position) }
-        self.inverted_index_r_z = {}  # { token: { docId : (freq, bold, position) }
+        self.inverted_indexes = {f"{start}": {} for start in all_ranges}
         self.id_to_url = {}  # { docID: (url, hash) }
         self.doc_id = 0
 
     # HIGH PRIORITY
     def traverse(self, path_name):
-        if os.path.exists("inverted_index_0_9.json"):
-            os.remove("inverted_index_0_9.json")
-
-        if os.path.exists("inverted_index_a_h.json"):
-            os.remove("inverted_index_a_h.json")
-
-        if os.path.exists("inverted_index_i_q.json"):
-            os.remove("inverted_index_i_q.json")
-
-        if os.path.exists("inverted_index_r_z.json"):
-            os.remove("inverted_index_r_z.json")
-
-        if os.path.exists("id_to_url.json"):
-            os.remove("id_to_url.json")
+        self.remove_inverted_index_files()
 
         root_dir = Path(path_name)
         try:
@@ -102,32 +91,19 @@ class Indexer:
             if token in bold_set:
                 frequency = frequency * 1.2
 
-            starting_char = token[0]
+            starting_char = token[0].lower()
 
-            if "0" <= starting_char <= "9":
-                if token not in self.inverted_index_0_9:
-                    self.inverted_index_0_9[token] = {current_id: frequency}
-                else:
-                    self.inverted_index_0_9[token].update({current_id: frequency})
+            # Determine which range the token belongs to
+            for start in all_ranges:
+                if start == starting_char:
+                    range_key = f"{start}"
+                    if token not in self.inverted_indexes[range_key]:
+                        self.inverted_indexes[range_key][token] = {current_id: frequency}
+                    else:
+                        self.inverted_indexes[range_key][token].update({current_id: frequency})
+                    break
 
-            elif "a" <= starting_char <= "h":
-                if token not in self.inverted_index_a_h:
-                    self.inverted_index_a_h[token] = {current_id: frequency}
-                else:
-                    self.inverted_index_a_h[token].update({current_id: frequency})
-
-            elif "i" <= starting_char <= "q":
-                if token not in self.inverted_index_i_q:
-                    self.inverted_index_i_q[token] = {current_id: frequency}
-                else:
-                    self.inverted_index_i_q[token].update({current_id: frequency})
-            else:
-                if token not in self.inverted_index_r_z:
-                    self.inverted_index_r_z[token] = {current_id: frequency}
-                else:
-                    self.inverted_index_r_z[token].update({current_id: frequency})
-
-            # self.inverted_index[token].update({current_id: frequency})
+        # self.inverted_index[token].update({current_id: frequency})
 
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
@@ -139,27 +115,33 @@ class Indexer:
             self.doc_id = max(self.id_to_url.keys()) + 1
             self.assign_id(url, tokens)
 
+    @staticmethod
+    def remove_inverted_index_files():
+        # Remove numeric index files
+        for start in all_ranges[:-1]:
+            filename = f"inverted_index_{start}.json"
+            if os.path.exists(filename):
+                os.remove(filename)
+
+        # Remove id_to_url.json file
+        if os.path.exists("id_to_url.json"):
+            os.remove("id_to_url.json")
+
     # low priority
     def save_files(self, id_to_url_path):
-        with open("inverted_index_path_0_9.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_0_9, inverted_index_file, indent=4, ensure_ascii=False)
+        # Save files
+        for start in all_ranges:
+            filename = f"inverted_index_{start}.json"
+            with open(filename, "w", encoding="utf-8") as inverted_index_file:
+                json.dump(self.inverted_indexes[f"{start}"], inverted_index_file, indent=4, ensure_ascii=False)
 
-        with open("inverted_index_path_a_h.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_a_h, inverted_index_file, indent=4, ensure_ascii=False)
-
-        with open("inverted_index_path_i_q.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_i_q, inverted_index_file, indent=4, ensure_ascii=False)
-
-        with open("inverted_index_path_r_z.json", "w", encoding="utf-8") as inverted_index_file:
-            json.dump(self.inverted_index_r_z, inverted_index_file, indent=4, ensure_ascii=False)
-
+        # Save id_to_url file
         with open(id_to_url_path, "w", encoding="utf-8") as id_to_url_file:
             json.dump(self.id_to_url, id_to_url_file, indent=4, ensure_ascii=False)
 
     @staticmethod
     def merge_files():
-        json_files = ["inverted_index_path_0_9.json", "inverted_index_path_a_h.json",
-                      "inverted_index_path_i_q.json", "inverted_index_path_r_z.json"]
+        json_files = [f"inverted_index_{start}.json" for start in all_ranges]
         merged_data = {}
 
         for file in json_files:
@@ -182,38 +164,3 @@ class Indexer:
 if __name__ == "__main__":
     main()
 
-
-# OG NGUYEN CODE, KEEP FOR NOW JUST INCASE WE RUN INTO WEIRD ERRORS
-# def query_document_match(self, query) -> list:
-#     query_tokens = tokenizer.tokenize(query)
-#     intersection_queue = []
-#
-#     for token in query_tokens:
-#         if token in self.inverted_index:
-#             intersection_queue.append(list(self.inverted_index[token].keys()))
-#         else:
-#             return []
-#
-#     intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
-#     intersection = intersection_queue[0]
-#     for i in range(1, len(intersection_queue)):
-#         intersection = self.intersect(intersection, intersection_queue[i])
-#
-#     return intersection
-#
-# @staticmethod
-# def intersect(term_list1, term_list2):
-#     answer = []
-#     i = 0
-#     j = 0
-#     while i < len(term_list1) and j < len(term_list2):
-#         if term_list1[i] == term_list2[j]:
-#             answer.append(term_list1[i])
-#             i += 1
-#             j += 1
-#         elif term_list1[i] > term_list2[j]:
-#             j += 1
-#         else:
-#             i += 1
-#     return answer
-#

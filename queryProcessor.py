@@ -1,8 +1,13 @@
 import tokenizer as tk
 import orjson
-# IMPORTANT: IF YOU ARE RUNNING INTO MEMORY ISSUES WE NEED TO SWITCH BACK TO JSON INSTEAD OF ORJSON!!!!!!!
+import os
+import math
 
-index_path = "inverted_index.json"
+# IMPORTANT: IF YOU ARE RUNNING INTO MEMORY ISSUES WE NEED TO SWITCH BACK TO JSON INSTEAD OF ORJSON!!!!!!!
+all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+              'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+              'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+              'u', 'v', 'w', 'x', 'y', 'z']
 id_path = "id_to_url.json"
 doc_count = 53194
 
@@ -13,36 +18,11 @@ def query_document_match(query) -> list:
 
     # !!!!! IF RUNNING INTO MEMORY ISSUES REFER TO LINE 3 !!!!!
     for token in query_tokens:
-        starting_char = token[0]
-        if "0" <= starting_char <= "9":
-            with open("inverted_index_path_0_9.json", "rb") as file:
-                inverted_index = orjson.loads(file.read())
-            if token in inverted_index:
-                intersection_queue.append(list(inverted_index[token].keys()))
-            else:
-                return []
-        elif "a" <= starting_char <= "h":
-            with open("inverted_index_path_a_h.json", "rb") as file:
-                inverted_index = orjson.loads(file.read())
-            if token in inverted_index:
-                intersection_queue.append(list(inverted_index[token].keys()))
-            else:
-                return []
-
-        elif "i" <= starting_char <= "q":
-            with open("inverted_index_path_i_q.json", "rb") as file:
-                inverted_index = orjson.loads(file.read())
-            if token in inverted_index:
-                intersection_queue.append(list(inverted_index[token].keys()))
-            else:
-                return []
+        inverted_index = open_inverted(token)
+        if token in inverted_index:
+            intersection_queue.append(list(inverted_index[token].keys()))
         else:
-            with open("inverted_index_path_r_z.json", "rb") as file:
-                inverted_index = orjson.loads(file.read())
-            if token in inverted_index:
-                intersection_queue.append(list(inverted_index[token].keys()))
-            else:
-                return []
+            return []
 
     intersection_queue = sorted(intersection_queue, key=lambda item: len(item))
     intersection = intersection_queue[0]
@@ -90,5 +70,73 @@ def retrieve_urls(id_list):
     return retrieved_urls
 
 
-# def calc_score(term, docid):
+# Opens the appropriate inverted index given a token
+def open_inverted(token):
+    starting_char = token[0].lower()
 
+    for start in all_ranges:
+        if start == starting_char:
+            filename = f"inverted_index_{start}.json"
+            if os.path.exists(filename):
+                with open(filename, "rb") as file:
+                    return orjson.loads(file.read())
+            break
+    # somehow wasn't found, shouldn't happen
+    return {}
+
+
+# FORMULA: tf * log(doc_count/ term_occurrence)
+def calc_score(term, docid):
+    inverted = open_inverted(term)
+    term_frq = inverted[term][docid]
+    term_oc = len(inverted)
+
+    return term_frq * math.log(doc_count / term_oc)
+
+
+# returns top 5, ordered (by score) doc_ids to retrieve
+# Utaliz
+# pass in query tokens, doc_ids,
+# list of inverted indexes needed (to avoid unesscarry openings)
+def ranking(query_tokens, doc_ids):
+    score_max = 0   # contains max score seen so far.
+    token_max = [0] * (len(query_tokens) + 1)  # list of tuples containing token : max score (of that term)
+    threshold = 20  # counts down until we've reached 20 "suitable documents (UPDATE GIVEN TIME)
+    ranked_doc_ids = []
+    # Go down the list is depleted or pulled 20 worthwhile documents
+    for doc in doc_ids:
+        if(threshold == 0):
+            break
+
+        doc_score = 0
+        skip_doc = False
+
+        for i, token in enumerate(query_tokens):
+            tfidf = calc_score(token, doc)
+            potential = potential_max(token_max[i+1:])
+
+            if (doc_score + tfidf + potential) < score_max:
+                skip_doc = True
+                break
+            elif tfidf > token_max[i]:
+                token_max[i] = tfidf
+
+            doc_score += tfidf
+        # Only reaches this point if it was worth storing
+        if not skip_doc:
+            ranked_doc_ids.append((doc, doc_score))
+            threshold -= 1
+
+        if doc_score > score_max:
+            score_max = doc_score
+    sorted_rank = ranked_doc_ids.sort(key=lambda x: x[1], reverse=True)
+    return sorted_rank[:5]
+
+
+# calculates the hypothetical best score from a query starting point.
+# PASS IN ONLY THE SCORE UP TO THAT POINT
+def potential_max(token_max):
+    max_score = 0
+    for score in token_max:
+        max_score += score
+    return max_score
