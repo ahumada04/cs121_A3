@@ -11,6 +11,10 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 id_path = "id_to_url.json"
 doc_count = 53194
 
+# def main(query):
+#     query_tokens = set(tk.tokenize(query))
+#     doc_ids = query_document_match(query_tokens)
+#     ranking(doc_ids)
 
 def query_document_match(query) -> list:
     query_tokens = set(tk.tokenize(query))
