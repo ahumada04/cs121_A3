@@ -30,11 +30,10 @@ class QueryMachine:
                 # extract snipit of inverted index as needed
                 self.inverted_indexes[bucket] = open_inverted(bucket)
 
-            if self.inverted_indexes[bucket][token]:  # making sure not empty
+            if token in self.inverted_indexes[bucket]:  # making sure token exists
                 intersection_queue.append(set(self.inverted_indexes[bucket][token].keys()))
-                # print(f"THIS SHOULD ONLY HOLD DOC IDS \n\n {self.inverted_indexes[token]}")
             else:
-                return []  # No results found, shouldn't happen with normal queries
+                return []  # No results found, automatically fails query match
 
         intersection_queue.sort(key=len)
         intersection = intersection_queue[0]
@@ -65,7 +64,7 @@ class QueryMachine:
     def ranking(self, query_tokens, doc_ids):
         score_max = 0   # contains max score seen so far.
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
-        threshold = 30  # counts down until we've reached 30 "suitable documents (UPDATE GIVEN TIME)
+        threshold = 50  # counts down until we've reached 50 "suitable" documents (UPDATE GIVEN TIME)
         ranked_doc_ids = []
 
         # Go down the list is depleted or pulled 20 worthwhile documents
