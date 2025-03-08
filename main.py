@@ -16,6 +16,9 @@ def main():
         run_flag = input("\nSearch Again (Y/N)?: ")
         if run_flag[0].lower() == 'n':
             break
+        else:
+            # clearing their local memory of the inverted index
+            qp.inverted_indexes.clear()
     print("Goodbye!")
 
 def pretty_print(urls):

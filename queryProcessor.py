@@ -65,7 +65,7 @@ class QueryMachine:
     def ranking(self, query_tokens, doc_ids):
         score_max = 0   # contains max score seen so far.
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
-        threshold = 10  # counts down until we've reached 10 "suitable documents (UPDATE GIVEN TIME)
+        threshold = 30  # counts down until we've reached 30 "suitable documents (UPDATE GIVEN TIME)
         ranked_doc_ids = []
 
         # Go down the list is depleted or pulled 20 worthwhile documents
