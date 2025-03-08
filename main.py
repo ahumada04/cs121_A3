@@ -1,16 +1,14 @@
-import queryProcessor as qp
+import queryProcessor
 import time
 
 def main():
-    # start pre-loading the inverted indexes?
-    # keeps running queries until user says stop
+    qp = queryProcessor.QueryMachine()
     while(True):
         user_q = input("ASK PETE: ")
 
         start_time = time.time()
         # Retrieving valid urls
-        id_list = qp.query_document_match(user_q)
-        urls = qp.retrieve_urls(id_list)
+        urls = qp.retrieveURLS(user_q)
         pretty_print(urls)
 
         elapsed = (time.time() - start_time) * 1000
