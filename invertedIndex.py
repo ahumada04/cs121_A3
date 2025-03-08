@@ -117,7 +117,7 @@ class Indexer:
     @staticmethod
     def remove_inverted_index_files():
         # Remove numeric index files
-        for start in all_ranges[:-1]:
+        for start in all_ranges:
             filename = f"inverted_index_{start}.json"
             if os.path.exists(filename):
                 os.remove(filename)
