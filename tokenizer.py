@@ -1,5 +1,5 @@
 import re
-from nltk.stem import PorterStemmer as ps
+from nltk.stem import PorterStemmer
 
 STOP_WORDS = [
     "s", "ve", "d", "ll", "t",
@@ -17,6 +17,8 @@ STOP_WORDS = [
     "when", "where", "which", "while", "who", "whom", "why", "with",
     "would", "you", "your", "yours", "yourself", "yourselves"]
 
+ps = PorterStemmer()
+
 
 def tokenize(content: str) -> list:
     if not content:
@@ -33,8 +35,8 @@ def tokenize_stemmed(content: str) -> list:
         return []
     else:
         pattern = r"[a-zA-Z0-9]+"
-    # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
-        stemmed_list = re.findall(pattern, ps.stem(content.lower()))
+        tokens = re.findall(pattern, content.lower())
+        stemmed_list = [ps.stem(token) for token in tokens]
         return stemmed_list
 
 
@@ -48,15 +50,16 @@ def tokenize_query(query: str) -> list:
         term_list = re.findall(pattern, query.lower())
         for term in term_list:
             if term not in STOP_WORDS and term not in token_list:
-                token_list.append(ps.stem(term))  # ONLY GRABBING STEMMED VERSIONS OF QUERY
+                token_list.append(term)  # ONLY GRABBING STEMMED VERSIONS OF QUERY
         return token_list
+
 
 def union_tokens(token_list, stemmed_list):
     all_list = []
-    for token, stemmed in token_list, stemmed_list:
+    for token, stemmed in zip(token_list, stemmed_list):
+        all_list.append(token)
         if token != stemmed:
             all_list.append(stemmed)  # only add stemmed when it's different, to avoid double counting
-        all_list.append(token)
     return all_list
 
 

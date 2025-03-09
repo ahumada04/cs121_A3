@@ -76,7 +76,7 @@ class Indexer:
         stemmed_tokens = tokenizer.tokenize_stemmed(content)
         token_list = tokenizer.union_tokens(tokens, stemmed_tokens)
 
-        tokens_dict = tokenizer.computeWordFrequencies(token_list)
+        tokens_dict = tokenizer.computeWordFrequencies(tokens)
         # Union tokens and stemmed versions of the word
         title_set = set(tokenizer.tokenize(title)) | set(tokenizer.tokenize_stemmed(title))
         heading_set = set(tokenizer.tokenize(heading)) | set(tokenizer.tokenize_stemmed(heading))
@@ -111,15 +111,6 @@ class Indexer:
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
         cur_hash = self.hasher.compute(tokens)
-        #  Duplicate/ Near Duplicate Detection
-        if urldefrag(url) in self.id_to_url.values:  # IF CODE BRICKING CHECK THIS
-            return  # PASS OVER THIS DOCUMENT
-        duplicate_found = any(
-            self.hasher.hamming_distance(existing_simhash[1], cur_hash) <= 6
-            for existing_simhash in self.id_to_url.values()
-        )
-        if duplicate_found:
-            return  # PASS OVER THIS DOCUMENT
 
         if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, cur_hash)

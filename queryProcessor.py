@@ -18,7 +18,7 @@ class QueryMachine:
         self.id_to_url = open_inverted(id_path)  # Load once
 
     def retrieveURLS(self, query):
-        query_tokens = tk.tokenize_query(str(query))
+        query_tokens = tk.tokenize_query(query)
         doc_ids = self.query_document_match(query_tokens)
         ranked = self.ranking(query_tokens, doc_ids)
         return self.geturls([doc_id for doc_id, _ in ranked])
@@ -32,7 +32,7 @@ class QueryMachine:
                 self.inverted_indexes[bucket] = open_inverted(bucket)
 
             if token in self.inverted_indexes[bucket]:  # making sure token exists
-                intersection_queue.append(set(self.inverted_indexes[bucket][token].keys()))
+                intersection_queue.append(self.inverted_indexes[bucket][token].keys())
             else:
                 return []  # No results found, automatically fails query match
 
