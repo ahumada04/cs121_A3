@@ -18,12 +18,15 @@ class QueryMachine:
         self.inverted_indexes = {}  # dictionary of our needed dictionaries
         self.id_to_url = open_inverted(id_path)  # Load once
 
+
     def retrieveURLS(self, query):
         query_tokens = tk.tokenize_query(query)
         doc_ids = self.query_document_match(query_tokens)
         ranked = self.ranking(query_tokens, doc_ids)
         return self.geturls([doc_id for doc_id, _ in ranked])
 
+    # O(A+B+C) where A, B, C are the sizes of inverted indexes opened given a query
+    # Our heaviest operation by far
     def query_document_match(self, query_tokens) -> list:
         intersection_queue = []
         for token in query_tokens:
@@ -44,6 +47,7 @@ class QueryMachine:
 
         return intersection
 
+    # O(A+B+C) where A, B, C are the LENGTHS of the document ID lists of each input
     @staticmethod
     def intersect(term_list1: list, term_list2: list):
         # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
@@ -81,10 +85,13 @@ class QueryMachine:
         # intersection_list.sort()
         # return intersection_list
 
+    # O(N), where N is the number of docids passed in to retrieve urls
     def geturls(self, id_list):
         return [self.id_to_url[doc_id][0] for doc_id in id_list if doc_id in self.id_to_url]
 
     # FORMULA: (1 + log(tf)) * log(N/df)
+    # O(1), Retrieval of the needed data is instant as we use a dictionary system,
+    # as well len() operator on dictionaries is a O(1) operation
     def calc_score(self, term, docid):
         bucket = term[0]
         term_frq = self.inverted_indexes[bucket][term][docid]
@@ -92,11 +99,13 @@ class QueryMachine:
         return (1 + math.log(term_frq)) * math.log(doc_count / term_oc)
 
     # returns top urls, ordered (by score) doc_ids to retrieve
+    # O(N*M), Where N is the number of document ids passed in and M is the number of tokens.
+    # the outer for loop runs N times while the inner for loop runs M times, to calc the score of each.
     def ranking(self, query_tokens, doc_ids):
         score_max = 0   # contains max score seen so far.
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
         # CUT DOWN FOR FASTER PROCESSING
-        threshold = 50  # counts down until we've reached 50 "suitable" documents (UPDATE GIVEN TIME)
+        threshold = 100  # counts down until we've reached 50 "suitable" documents (UPDATE GIVEN TIME)
         ranked_doc_ids = []
 
         # Go down the list is depleted or pulled 20 worthwhile documents
@@ -118,6 +127,7 @@ class QueryMachine:
                     token_max[i] = tfidf
 
                 doc_score += tfidf
+
             # Only reaches this point if it was worth storing
             if not skip_doc:
                 ranked_doc_ids.append((doc, doc_score))
@@ -129,6 +139,7 @@ class QueryMachine:
         return ranked_doc_ids  # return top whatever results, print cuts off to top 5
 
     # Passes in score UP UNTIL that point
+    # O(N), Where N is the number of document ids passed in (often not the full N)
     @staticmethod
     def potential_max(token_max):
         max_score = 0
@@ -137,6 +148,7 @@ class QueryMachine:
         return max_score
 
 
+# O(N), Where N is the size of the bucket needed to be opened/ read
 def open_inverted(token):
     starting_char = token[0]
     if token == id_path:  # opening id_to_url
@@ -154,34 +166,34 @@ def open_inverted(token):
     return {}
 
 
-def intersect(term_list1, term_list2):
-    # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
-    # term_list one is the lesser than
-    intersection = set()
-
-    term_list1.sort()
-    term_list2.sort()
-
-    length_i = len(term_list1)
-    length_j = len(term_list2)
-
-    i = 0
-    j = 0
-
-    while i < length_i and j < length_j:
-        if term_list1[i] == term_list2[j]:
-            intersection.add(term_list1[i])
-            i += 1
-            j += 1
-        elif term_list1[i] < term_list2[j]:
-            i += 1
-        else:
-            j += 1
-
-        if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
-            break
-
-    # intersection_set = set(term_list1) & set(term_list2)
-    # intersection_list = list(intersection_set)
-    # intersection_list.sort()
-    return list(intersection)
+# def intersect(term_list1, term_list2):
+#     # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
+#     # term_list one is the lesser than
+#     intersection = set()
+#
+#     term_list1.sort()
+#     term_list2.sort()
+#
+#     length_i = len(term_list1)
+#     length_j = len(term_list2)
+#
+#     i = 0
+#     j = 0
+#
+#     while i < length_i and j < length_j:
+#         if term_list1[i] == term_list2[j]:
+#             intersection.add(term_list1[i])
+#             i += 1
+#             j += 1
+#         elif term_list1[i] < term_list2[j]:
+#             i += 1
+#         else:
+#             j += 1
+#
+#         if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
+#             break
+#
+#     # intersection_set = set(term_list1) & set(term_list2)
+#     # intersection_list = list(intersection_set)
+#     # intersection_list.sort()
+#     return list(intersection)

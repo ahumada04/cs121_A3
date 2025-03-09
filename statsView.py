@@ -32,11 +32,11 @@ def main():
 def jsonExtract():
     try:
         # Load the JSON file
-        with open("merged.json", 'r', encoding='utf-8') as file:
+        with open("buckets/merged.json", 'r', encoding='utf-8') as file:
             tokens = json.load(file)
             # tokens = data[0]
             print(f"Token count: {len(tokens)}")
-        with open("id_to_url.json", 'r', encoding='utf-8') as file:
+        with open("buckets/id_to_url.json", 'r', encoding='utf-8') as file:
             documents = json.load(file)
         #     documents = data[0]
             print(f"Document count: {len(documents)}")

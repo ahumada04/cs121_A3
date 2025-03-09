@@ -29,7 +29,6 @@ class Indexer:
     def traverse(self, path_name):
         self.remove_inverted_index_files()
 
-        os.mkdir("buckets")
         root_dir = Path(path_name)
         try:
             count = 0
@@ -54,7 +53,6 @@ class Indexer:
             print(f"Unexpected error: {e}")
 
     @staticmethod
-    # ERICK: json dump between 
     def file_parser(json_file):
         with open(json_file, "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -140,9 +138,6 @@ class Indexer:
         # Remove id_to_url.json file
         if os.path.exists("buckets/id_to_url.json"):
             os.remove("buckets/id_to_url.json")
-
-        if os.path.isdir("buckets"):
-            os.remove("buckets")
 
     # low priority
     def save_files(self, id_to_url_path):
