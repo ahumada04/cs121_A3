@@ -15,7 +15,7 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 def main():
     simhash = hasher.SimHash()
     indexer = Indexer(simhash)
-    indexer.traverse("DEV")
+    indexer.traverse("TESTDEV")
 
 
 class Indexer:
@@ -79,6 +79,8 @@ class Indexer:
         bold_set = set(tokenizer.tokenize(bold_text))
 
         current_id = self.assign_id(url, tokens)
+        if(current_id == -1):  # Skip over entire document
+            return
 
         for token, frequency in tokens_dict.items():
             # Fluffing up frequency count within a document to increase TF-IDF score
@@ -111,9 +113,9 @@ class Indexer:
         #  Duplicate/ Near Duplicate Detection
         for _, (old_url, old_hash) in self.id_to_url.items():
             if url == old_url:
-                return self.doc_id  # signal this id is BEING PASSED, do NOT bother tokenizing
-            if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
-                return self.doc_id
+                return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
+            if self.hasher.hamming_distance(old_hash, cur_hash) <= 6:
+                return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
 
         if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, cur_hash)
