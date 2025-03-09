@@ -112,9 +112,9 @@ class Indexer:
         #  Duplicate/ Near Duplicate Detection
         for _, (old_url, old_hash) in self.id_to_url.items():
             if url == old_url:
-                return self.doc_id  # signal this id is BEING PASSED, do NOT bother tokenizing
+                return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
             if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
-                return self.doc_id
+                return -1
 
         if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, cur_hash)
