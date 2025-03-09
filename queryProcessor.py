@@ -19,7 +19,7 @@ class QueryMachine:
         self.id_to_url = open_inverted(id_path)  # Load once
 
     def retrieveURLS(self, query):
-        query_tokens = tk.tokenize_query(str(query))
+        query_tokens = tk.tokenize_query(query)
         doc_ids = self.query_document_match(query_tokens)
         ranked = self.ranking(query_tokens, doc_ids)
         return self.geturls([doc_id for doc_id, _ in ranked])
@@ -91,7 +91,7 @@ class QueryMachine:
         term_oc = len(self.inverted_indexes[bucket][term])
         return (1 + math.log(term_frq)) * math.log(doc_count / term_oc)
 
-    # returns top 5, ordered (by score) doc_ids to retrieve
+    # returns top urls, ordered (by score) doc_ids to retrieve
     def ranking(self, query_tokens, doc_ids):
         score_max = 0   # contains max score seen so far.
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
@@ -145,7 +145,6 @@ def open_inverted(token):
 
     for start in all_ranges:  # opening any of our inverted indexes
         if start == starting_char:
-            # print("hey")
             filename = f"buckets/inverted_index_{start}.json"
             if os.path.exists(filename):
                 with open(filename, "rb") as file:

@@ -73,13 +73,18 @@ class Indexer:
     # MODIFIED
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
+        # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
-        tokens_dict = tokenizer.computeWordFrequencies(tokens)
-        title_set = set(tokenizer.tokenize(title))
-        heading_set = set(tokenizer.tokenize(heading))
-        bold_set = set(tokenizer.tokenize(bold_text))
+        stemmed_tokens = tokenizer.tokenize_stemmed(content)
+        token_list = tokenizer.union_tokens(tokens, stemmed_tokens)
 
-        current_id = self.assign_id(url, tokens)
+        tokens_dict = tokenizer.computeWordFrequencies(token_list)
+        # Union tokens and stemmed versions of the word
+        title_set = set(tokenizer.tokenize(title)) | set(tokenizer.tokenize_stemmed(title))
+        heading_set = set(tokenizer.tokenize(heading)) | set(tokenizer.tokenize_stemmed(heading))
+        bold_set = set(tokenizer.tokenize(bold_text)) | set(tokenizer.tokenize_stemmed(bold_text))
+
+        current_id = self.assign_id(url, token_list)
 
         for token, frequency in tokens_dict.items():
             # Fluffing up frequency count within a document to increase TF-IDF score
@@ -112,9 +117,9 @@ class Indexer:
         #  Duplicate/ Near Duplicate Detection
         for _, (old_url, old_hash) in self.id_to_url.items():
             if url == old_url:
-                return self.doc_id  # signal this id is BEING PASSED, do NOT bother tokenizing
+                return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
             if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
-                return self.doc_id
+                return -1
 
         if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, cur_hash)
