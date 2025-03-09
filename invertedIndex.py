@@ -158,7 +158,7 @@ class Indexer:
 
     @staticmethod
     def merge_files():
-        json_files = [f"inverted_index_{start}.json" for start in all_ranges]
+        json_files = [f"buckets/inverted_index_{start}.json" for start in all_ranges]
         merged_data = {}
 
         for file in json_files:
@@ -174,7 +174,7 @@ class Indexer:
                 except json.JSONDecodeError:
                     print(f"Skipping {file} due to JSON format error.")
 
-        with open("merged.json", "w") as f:
+        with open("buckets/merged.json", "w") as f:
             json.dump(merged_data, f, indent=4)
 
 
