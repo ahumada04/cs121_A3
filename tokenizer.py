@@ -1,21 +1,21 @@
 import re
-#  DO NOT DELETE
-#  TBD, might not parse out stop words for this assignment
-# STOP_WORDS = [
-#     "s", "ve", "d", "ll", "t",
-#     "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
-#     "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "cannot", "could",
-#     "did", "do", "does", "doing", "down", "during", "each", "few", "for",
-#     "from", "further", "had", "has", "have", "having", "he",
-#     "her", "here", "hers", "herself", "him", "himself", "his", "how", "i",
-#     "if", "in", "into", "is", "it", "its", "itself", "me", "more", "most",
-#     "my", "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours",
-#     "ourselves", "out", "over", "own", "same", "she", "should",
-#     "so", "some", "such", "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there",
-#     "these", "they", "this", "those", "through", "to", "too",
-#     "under", "until", "up", "very", "was", "we", "were", "what",
-#     "when", "where", "which", "while", "who", "whom", "why", "with",
-#     "would", "you", "your", "yours", "yourself", "yourselves"]
+# from nltk.stem import PorterStemmer as ps
+
+STOP_WORDS = [
+    "s", "ve", "d", "ll", "t",
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
+    "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "cannot", "could",
+    "did", "do", "does", "doing", "down", "during", "each", "few", "for",
+    "from", "further", "had", "has", "have", "having", "he",
+    "her", "here", "hers", "herself", "him", "himself", "his", "how", "i",
+    "if", "in", "into", "is", "it", "its", "itself", "me", "more", "most",
+    "my", "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours",
+    "ourselves", "out", "over", "own", "same", "she", "should",
+    "so", "some", "such", "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there",
+    "these", "they", "this", "those", "through", "to", "too",
+    "under", "until", "up", "very", "was", "we", "were", "what",
+    "when", "where", "which", "while", "who", "whom", "why", "with",
+    "would", "you", "your", "yours", "yourself", "yourselves"]
 
 
 def tokenize(content: str) -> list:
@@ -26,6 +26,38 @@ def tokenize(content: str) -> list:
     # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
         token_list = re.findall(pattern, content.lower())
         return token_list
+
+
+# def tokenize_stemmed(content: str) -> list:
+#     if not content:
+#         return []
+#     else:
+#         pattern = r"[a-zA-Z0-9]+"
+#     # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
+#         stemmed_list = re.findall(pattern, ps.stem(content.lower()))
+#         return stemmed_list
+
+
+def tokenize_query(query: str) -> list:
+    if not query:
+        return []
+    else:
+        token_list = []
+        pattern = r"[a-zA-Z0-9]+"
+    # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
+        term_list = re.findall(pattern, query.lower())
+        for term in term_list:
+            if term not in STOP_WORDS and term not in token_list:
+                token_list.append(term)  # ONLY GRABBING STEMMED VERSIONS OF QUERY
+        return token_list
+
+def union_tokens(token_list, stemmed_list):
+    all_list = []
+    for token, stemmed in token_list, stemmed_list:
+        if token != stemmed:
+            all_list.append(stemmed)  # only add stemmed when it's different, to avoid double counting
+        all_list.append(token)
+    return all_list
 
 
 def computeWordFrequencies(token_list: list) -> dict:

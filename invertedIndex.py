@@ -3,6 +3,7 @@ import json
 import tokenizer
 import os
 from bs4 import BeautifulSoup
+from urllib.parse import urldefrag
 import hasher
 
 all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -28,6 +29,7 @@ class Indexer:
     def traverse(self, path_name):
         self.remove_inverted_index_files()
 
+        os.mkdir("buckets")
         root_dir = Path(path_name)
         try:
             count = 0
@@ -46,7 +48,7 @@ class Indexer:
                     except Exception as e:
                         print(f"Unexpected error with {json_file}: {e}")
 
-            self.save_files("id_to_url.json")
+            self.save_files("buckets/id_to_url.json")
             self.merge_files()
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -73,10 +75,9 @@ class Indexer:
         # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
         tokens_dict = tokenizer.computeWordFrequencies(tokens)
-
         title_set = set(tokenizer.tokenize(title))
-        heading_set = tokenizer.computeWordFrequencies(heading)
-        bold_set = tokenizer.tokenize(bold_text)
+        heading_set = set(tokenizer.tokenize(heading))
+        bold_set = set(tokenizer.tokenize(bold_text))
 
         current_id = self.assign_id(url, tokens)
 
@@ -106,8 +107,17 @@ class Indexer:
 
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
+        cur_hash = self.hasher.compute(tokens)
+        url, _ = urldefrag(url)
+        #  Duplicate/ Near Duplicate Detection
+        for _, (old_url, old_hash) in self.id_to_url.items():
+            if url == old_url:
+                return self.doc_id  # signal this id is BEING PASSED, do NOT bother tokenizing
+            if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
+                return self.doc_id
+
         if self.doc_id not in self.id_to_url:
-            self.id_to_url[self.doc_id] = (url, self.hasher.compute(tokens))
+            self.id_to_url[self.doc_id] = (url, cur_hash)
             self.doc_id += 1
             return self.doc_id - 1
         else:
@@ -117,20 +127,23 @@ class Indexer:
     @staticmethod
     def remove_inverted_index_files():
         # Remove numeric index files
-        for start in all_ranges[:-1]:
-            filename = f"inverted_index_{start}.json"
+        for start in all_ranges:
+            filename = f"buckets/inverted_index_{start}.json"
             if os.path.exists(filename):
                 os.remove(filename)
 
         # Remove id_to_url.json file
-        if os.path.exists("id_to_url.json"):
-            os.remove("id_to_url.json")
+        if os.path.exists("buckets/id_to_url.json"):
+            os.remove("buckets/id_to_url.json")
+
+        if os.path.isdir("buckets"):
+            os.remove("buckets")
 
     # low priority
     def save_files(self, id_to_url_path):
         # Save files
         for start in all_ranges:
-            filename = f"inverted_index_{start}.json"
+            filename = f"buckets/inverted_index_{start}.json"
             with open(filename, "w", encoding="utf-8") as inverted_index_file:
                 json.dump(self.inverted_indexes[f"{start}"], inverted_index_file, indent=4, ensure_ascii=False)
 
