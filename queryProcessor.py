@@ -11,13 +11,14 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 id_path = "id_to_url.json"
 doc_count = 53194
 
+
 class QueryMachine:
     def __init__(self):
         self.inverted_indexes = {}  # dictionary of our needed dictionaries
         self.id_to_url = open_inverted(id_path)  # Load once
 
     def retrieveURLS(self, query):
-        query_tokens = tk.tokenizeQuery(str(query))
+        query_tokens = tk.tokenize_query(str(query))
         doc_ids = self.query_document_match(query_tokens)
         ranked = self.ranking(query_tokens, doc_ids)
         return self.geturls([doc_id for doc_id, _ in ranked])
@@ -64,12 +65,13 @@ class QueryMachine:
     def ranking(self, query_tokens, doc_ids):
         score_max = 0   # contains max score seen so far.
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
+        # CUT DOWN FOR FASTER PROCESSING
         threshold = 50  # counts down until we've reached 50 "suitable" documents (UPDATE GIVEN TIME)
         ranked_doc_ids = []
 
         # Go down the list is depleted or pulled 20 worthwhile documents
         for doc in doc_ids:
-            if(threshold == 0):
+            if threshold == 0:
                 break
 
             doc_score = 0
@@ -96,9 +98,7 @@ class QueryMachine:
         ranked_doc_ids.sort(key=lambda x: x[1], reverse=True)
         return ranked_doc_ids  # return top whatever results, print cuts off to top 5
 
-
-    # calculates the hypothetical best score from a query starting point.
-    # PASS IN ONLY THE SCORE UP TO THAT POINT
+    # Passes in score UP UNTIL that point
     @staticmethod
     def potential_max(token_max):
         max_score = 0
@@ -122,6 +122,7 @@ def open_inverted(token):
             break
     # somehow wasn't found, shouldn't happen
     return {}
+
 
 def intersect(term_list1, term_list2):
     # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION

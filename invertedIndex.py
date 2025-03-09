@@ -3,6 +3,7 @@ import json
 import tokenizer
 import os
 from bs4 import BeautifulSoup
+from urllib.parse import urldefrag
 import hasher
 
 all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -72,13 +73,16 @@ class Indexer:
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
-        tokens_dict = tokenizer.computeWordFrequencies(tokens)
+        stemmed_tokens = tokenizer.tokenize_stemmed(content)
+        token_list = tokenizer.union_tokens(tokens, stemmed_tokens)
 
-        title_set = set(tokenizer.tokenize(title))
-        heading_set = tokenizer.computeWordFrequencies(heading)
-        bold_set = tokenizer.tokenize(bold_text)
+        tokens_dict = tokenizer.computeWordFrequencies(token_list)
+        # Union tokens and stemmed versions of the word
+        title_set = set(tokenizer.tokenize(title)) | set(tokenizer.tokenize_stemmed(title))
+        heading_set = set(tokenizer.tokenize(heading)) | set(tokenizer.tokenize_stemmed(heading))
+        bold_set = set(tokenizer.tokenize(bold_text)) | set(tokenizer.tokenize_stemmed(bold_text))
 
-        current_id = self.assign_id(url, tokens)
+        current_id = self.assign_id(url, token_list)
 
         for token, frequency in tokens_dict.items():
             # Fluffing up frequency count within a document to increase TF-IDF score
@@ -106,8 +110,19 @@ class Indexer:
 
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
+        cur_hash = self.hasher.compute(tokens)
+        #  Duplicate/ Near Duplicate Detection
+        if urldefrag(url) in self.id_to_url.values:  # IF CODE BRICKING CHECK THIS
+            return  # PASS OVER THIS DOCUMENT
+        duplicate_found = any(
+            self.hasher.hamming_distance(existing_simhash[1], cur_hash) <= 6
+            for existing_simhash in self.id_to_url.values()
+        )
+        if duplicate_found:
+            return  # PASS OVER THIS DOCUMENT
+
         if self.doc_id not in self.id_to_url:
-            self.id_to_url[self.doc_id] = (url, self.hasher.compute(tokens))
+            self.id_to_url[self.doc_id] = (url, cur_hash)
             self.doc_id += 1
             return self.doc_id - 1
         else:

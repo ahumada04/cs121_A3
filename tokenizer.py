@@ -1,6 +1,6 @@
 import re
-#  DO NOT DELETE
-#  TBD, might not parse out stop words for this assignment
+from nltk.stem import PorterStemmer as ps
+
 STOP_WORDS = [
     "s", "ve", "d", "ll", "t",
     "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
@@ -28,7 +28,17 @@ def tokenize(content: str) -> list:
         return token_list
 
 
-def tokenizeQuery(query: str) -> list:
+def tokenize_stemmed(content: str) -> list:
+    if not content:
+        return []
+    else:
+        pattern = r"[a-zA-Z0-9]+"
+    # UPDATE LATER TO READ BY BYTE INSTEAD OF ALL AT ONCE
+        stemmed_list = re.findall(pattern, ps.stem(content.lower()))
+        return stemmed_list
+
+
+def tokenize_query(query: str) -> list:
     if not query:
         return []
     else:
@@ -38,8 +48,16 @@ def tokenizeQuery(query: str) -> list:
         term_list = re.findall(pattern, query.lower())
         for term in term_list:
             if term not in STOP_WORDS and term not in token_list:
-                token_list.append(term)
+                token_list.append(ps.stem(term))  # ONLY GRABBING STEMMED VERSIONS OF QUERY
         return token_list
+
+def union_tokens(token_list, stemmed_list):
+    all_list = []
+    for token, stemmed in token_list, stemmed_list:
+        if token != stemmed:
+            all_list.append(stemmed)  # only add stemmed when it's different, to avoid double counting
+        all_list.append(token)
+    return all_list
 
 
 def computeWordFrequencies(token_list: list) -> dict:
