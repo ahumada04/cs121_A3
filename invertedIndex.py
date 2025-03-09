@@ -73,16 +73,12 @@ class Indexer:
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
-        stemmed_tokens = tokenizer.tokenize_stemmed(content)
-        token_list = tokenizer.union_tokens(tokens, stemmed_tokens)
+        tokens_dict = tokenizer.computeWordFrequencies(tokens)
+        title_set = set(tokenizer.tokenize(title))
+        heading_set = set(tokenizer.tokenize(heading))
+        bold_set = set(tokenizer.tokenize(bold_text))
 
-        tokens_dict = tokenizer.computeWordFrequencies(token_list)
-        # Union tokens and stemmed versions of the word
-        title_set = set(tokenizer.tokenize(title)) | set(tokenizer.tokenize_stemmed(title))
-        heading_set = set(tokenizer.tokenize(heading)) | set(tokenizer.tokenize_stemmed(heading))
-        bold_set = set(tokenizer.tokenize(bold_text)) | set(tokenizer.tokenize_stemmed(bold_text))
-
-        current_id = self.assign_id(url, token_list)
+        current_id = self.assign_id(url, tokens)
 
         for token, frequency in tokens_dict.items():
             # Fluffing up frequency count within a document to increase TF-IDF score
@@ -111,15 +107,13 @@ class Indexer:
     # HIGH PRIORITY
     def assign_id(self, url: str, tokens: list):
         cur_hash = self.hasher.compute(tokens)
+        url, _ = urldefrag(url)
         #  Duplicate/ Near Duplicate Detection
-        if urldefrag(url) in self.id_to_url.values:  # IF CODE BRICKING CHECK THIS
-            return  # PASS OVER THIS DOCUMENT
-        duplicate_found = any(
-            self.hasher.hamming_distance(existing_simhash[1], cur_hash) <= 6
-            for existing_simhash in self.id_to_url.values()
-        )
-        if duplicate_found:
-            return  # PASS OVER THIS DOCUMENT
+        for _, (old_url, old_hash) in self.id_to_url.items():
+            if url == old_url:
+                return self.doc_id  # signal this id is BEING PASSED, do NOT bother tokenizing
+            if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
+                return self.doc_id
 
         if self.doc_id not in self.id_to_url:
             self.id_to_url[self.doc_id] = (url, cur_hash)

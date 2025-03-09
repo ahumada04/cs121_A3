@@ -9,7 +9,7 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
               'u', 'v', 'w', 'x', 'y', 'z']
 id_path = "id_to_url.json"
-doc_count = 53194
+doc_count = 30308
 
 
 class QueryMachine:
