@@ -8,7 +8,8 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
               'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
               'u', 'v', 'w', 'x', 'y', 'z']
-id_path = "id_to_url.json"
+
+id_path = "buckets/id_to_url.json"
 doc_count = 30308
 
 
@@ -32,7 +33,7 @@ class QueryMachine:
                 self.inverted_indexes[bucket] = open_inverted(bucket)
 
             if token in self.inverted_indexes[bucket]:  # making sure token exists
-                intersection_queue.append(set(self.inverted_indexes[bucket][token].keys()))
+                intersection_queue.append(list(self.inverted_indexes[bucket][token].keys()))
             else:
                 return []  # No results found, automatically fails query match
 
@@ -44,12 +45,41 @@ class QueryMachine:
         return intersection
 
     @staticmethod
-    def intersect(term_list1, term_list2):
+    def intersect(term_list1: list, term_list2: list):
         # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
-        intersection_set = set(term_list1) & set(term_list2)
-        intersection_list = list(intersection_set)
-        intersection_list.sort()
-        return intersection_list
+        intersection = set()
+
+        term_list1.sort()
+        term_list2.sort()
+
+        length_i = len(term_list1)
+        length_j = len(term_list2)
+
+        i = 0
+        j = 0
+
+        while i < length_i and j < length_j:
+            if term_list1[i] == term_list2[j]:
+                intersection.add(term_list1[i])
+                i += 1
+                j += 1
+            elif term_list1[i] < term_list2[j]:
+                i += 1
+            else:
+                j += 1
+
+            if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
+                break
+
+        # intersection_set = set(term_list1) & set(term_list2)
+        # intersection_list = list(intersection_set)
+        # intersection_list.sort()
+        return list(intersection)
+
+        # intersection_set = set(term_list1) & set(term_list2)
+        # intersection_list = list(intersection_set)
+        # intersection_list.sort()
+        # return intersection_list
 
     def geturls(self, id_list):
         return [self.id_to_url[doc_id][0] for doc_id in id_list if doc_id in self.id_to_url]
@@ -115,7 +145,8 @@ def open_inverted(token):
 
     for start in all_ranges:  # opening any of our inverted indexes
         if start == starting_char:
-            filename = f"inverted_index_{start}.json"
+            # print("hey")
+            filename = f"buckets/inverted_index_{start}.json"
             if os.path.exists(filename):
                 with open(filename, "rb") as file:
                     return orjson.loads(file.read())
@@ -126,7 +157,32 @@ def open_inverted(token):
 
 def intersect(term_list1, term_list2):
     # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
-    intersection_set = set(term_list1) & set(term_list2)
-    intersection_list = list(intersection_set)
-    intersection_list.sort()
-    return intersection_list
+    # term_list one is the lesser than
+    intersection = set()
+
+    term_list1.sort()
+    term_list2.sort()
+
+    length_i = len(term_list1)
+    length_j = len(term_list2)
+
+    i = 0
+    j = 0
+
+    while i < length_i and j < length_j:
+        if term_list1[i] == term_list2[j]:
+            intersection.add(term_list1[i])
+            i += 1
+            j += 1
+        elif term_list1[i] < term_list2[j]:
+            i += 1
+        else:
+            j += 1
+
+        if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
+            break
+
+    # intersection_set = set(term_list1) & set(term_list2)
+    # intersection_list = list(intersection_set)
+    # intersection_list.sort()
+    return list(intersection)

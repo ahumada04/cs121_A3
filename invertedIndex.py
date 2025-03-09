@@ -29,6 +29,7 @@ class Indexer:
     def traverse(self, path_name):
         self.remove_inverted_index_files()
 
+        os.mkdir("buckets")
         root_dir = Path(path_name)
         try:
             count = 0
@@ -47,7 +48,7 @@ class Indexer:
                     except Exception as e:
                         print(f"Unexpected error with {json_file}: {e}")
 
-            self.save_files("id_to_url.json")
+            self.save_files("buckets/id_to_url.json")
             self.merge_files()
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -127,19 +128,22 @@ class Indexer:
     def remove_inverted_index_files():
         # Remove numeric index files
         for start in all_ranges:
-            filename = f"inverted_index_{start}.json"
+            filename = f"buckets/inverted_index_{start}.json"
             if os.path.exists(filename):
                 os.remove(filename)
 
         # Remove id_to_url.json file
-        if os.path.exists("id_to_url.json"):
-            os.remove("id_to_url.json")
+        if os.path.exists("buckets/id_to_url.json"):
+            os.remove("buckets/id_to_url.json")
+
+        if os.path.isdir("buckets"):
+            os.remove("buckets")
 
     # low priority
     def save_files(self, id_to_url_path):
         # Save files
         for start in all_ranges:
-            filename = f"inverted_index_{start}.json"
+            filename = f"buckets/inverted_index_{start}.json"
             with open(filename, "w", encoding="utf-8") as inverted_index_file:
                 json.dump(self.inverted_indexes[f"{start}"], inverted_index_file, indent=4, ensure_ascii=False)
 
