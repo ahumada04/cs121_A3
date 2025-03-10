@@ -18,7 +18,6 @@ class QueryMachine:
         self.inverted_indexes = {}  # dictionary of our needed dictionaries
         self.id_to_url = open_inverted(id_path)  # Load once
 
-
     def retrieveURLS(self, query):
         query_tokens = tk.tokenize_query(query)
         doc_ids = self.query_document_match(query_tokens)
@@ -40,7 +39,11 @@ class QueryMachine:
             else:
                 return []  # No results found, automatically fails query match
 
+        if not intersection_queue:
+            return []
+
         intersection_queue.sort(key=len)
+
         intersection = intersection_queue[0]
         for i in range(1, len(intersection_queue)):
             intersection = self.intersect(intersection, intersection_queue[i])
@@ -75,15 +78,7 @@ class QueryMachine:
             if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
                 break
 
-        # intersection_set = set(term_list1) & set(term_list2)
-        # intersection_list = list(intersection_set)
-        # intersection_list.sort()
         return list(intersection)
-
-        # intersection_set = set(term_list1) & set(term_list2)
-        # intersection_list = list(intersection_set)
-        # intersection_list.sort()
-        # return intersection_list
 
     # O(N), where N is the number of docids passed in to retrieve urls
     def geturls(self, id_list):
@@ -118,7 +113,7 @@ class QueryMachine:
 
             for i, token in enumerate(query_tokens):
                 tfidf = self.calc_score(token, doc)
-                potential = self.potential_max(token_max[i+1:])
+                potential = (self.potential_max(token_max[i+1:]))
 
                 if (doc_score + tfidf + potential) < score_max:
                     skip_doc = True
@@ -164,36 +159,3 @@ def open_inverted(token):
             break
     # somehow wasn't found, shouldn't happen
     return {}
-
-
-# def intersect(term_list1, term_list2):
-#     # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
-#     # term_list one is the lesser than
-#     intersection = set()
-#
-#     term_list1.sort()
-#     term_list2.sort()
-#
-#     length_i = len(term_list1)
-#     length_j = len(term_list2)
-#
-#     i = 0
-#     j = 0
-#
-#     while i < length_i and j < length_j:
-#         if term_list1[i] == term_list2[j]:
-#             intersection.add(term_list1[i])
-#             i += 1
-#             j += 1
-#         elif term_list1[i] < term_list2[j]:
-#             i += 1
-#         else:
-#             j += 1
-#
-#         if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
-#             break
-#
-#     # intersection_set = set(term_list1) & set(term_list2)
-#     # intersection_list = list(intersection_set)
-#     # intersection_list.sort()
-#     return list(intersection)

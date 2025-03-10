@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import queryProcessor as qp
 
+query_machine = qp.QueryMachine()
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
@@ -11,8 +12,7 @@ def index():
     if request.method == "POST":
         query = request.form["query"].strip()
         if query:
-            id_list = qp.query_document_match(query) 
-            urls = qp.retrieve_urls(id_list)  
+            urls = query_machine.retrieveURLS(query)
             results = [{"url": url, "rank": i+1} for i, url in enumerate(urls[:5])]
 
     return render_template("index.html", query=query, results=results)

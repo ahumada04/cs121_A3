@@ -1,0 +1,38 @@
+Given these queries, we hoped to optimize our queryProcessor on handling a query
+ that opens up many buckets. Which means each term in the query starts with a
+ different letter. Additionally, we increased the length of the query each time to
+ see how it interacted with our intersection.
+
+ 1. master of software engineering
+ 2. master of software engineering bachelor
+ 3. master of software engineering bachelor program
+ 4. master of software engineering bachelor program uci
+ 5. master of software engineering bachelor program uci anteater
+
+ Given these queries, we wanted to see how our queryProcessor interacted with large buckets.
+ We noticed that our largest buckets were "1", "9", "c", "a", "i", "p", and "s". So we tested
+ our worst case scenario with these buckets.
+
+ 6. 1 machine learning place
+ 7. 9 machine learning place
+ 8. campus uci anteater
+ 9. ai internship internet
+ 10. software engineering uci ai internship
+
+ Given these queries, we hoped that generic queries might work. We tested these queries
+ for what an average user might look up about uci.
+
+ 11. uci computer science internships
+ 12. uci campus tour
+ 13. uci ai club projects
+ 14. uci masters program in computer science
+ 15. uci open datasets
+
+Given these queries, we realized stop words were being removed from our query, so queries
+with just stop words would give us an error rather than no urls found.
+
+ 16. a
+ 17. the
+ 18. what
+ 19. so
+ 20. some
