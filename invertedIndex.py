@@ -26,6 +26,8 @@ class Indexer:
         self.doc_id = 0
 
     # HIGH PRIORITY
+    # time complexity: O(n * m) where n is the number of directories, and m is
+    # number of documents in the directory
     def traverse(self, path_name):
         self.remove_inverted_index_files()
 
@@ -52,6 +54,7 @@ class Indexer:
         except Exception as e:
             print(f"Unexpected error: {e}")
 
+    # O(n) where n is length of the document content
     @staticmethod
     def file_parser(json_file):
         with open(json_file, "r", encoding="utf-8") as file:
@@ -69,6 +72,8 @@ class Indexer:
 
     # HIGH PRIORITY
     # MODIFIED
+    # time complexity: O(n * m): where n is the number of tokens in a given document and
+    # m is our global ranges list
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
         # raw token/ term frequency
@@ -109,6 +114,7 @@ class Indexer:
         # self.inverted_index[token].update({current_id: frequency})
 
     # HIGH PRIORITY
+    # O(n): where n is the length of our content, because we call hasher
     def assign_id(self, url: str, tokens: list):
         cur_hash = self.hasher.compute(tokens)
         url, _ = urldefrag(url)
@@ -127,6 +133,7 @@ class Indexer:
             self.doc_id = max(self.id_to_url.keys()) + 1
             self.assign_id(url, tokens)
 
+    # Time complexity: O(n) where n is the number of buckets we have (36)
     @staticmethod
     def remove_inverted_index_files():
         # Remove numeric index files
@@ -139,6 +146,8 @@ class Indexer:
         if os.path.exists("buckets/id_to_url.json"):
             os.remove("buckets/id_to_url.json")
 
+    # Time complexity: O(n * m): where n is the number of tokens in our inverted index and
+    # m is the number of buckets (36)
     # low priority
     def save_files(self, id_to_url_path):
         # Save files
@@ -151,6 +160,7 @@ class Indexer:
         with open(id_to_url_path, "w", encoding="utf-8") as id_to_url_file:
             json.dump(self.id_to_url, id_to_url_file, indent=4, ensure_ascii=False)
 
+    # O(n): total size of all data being loaded and dumped
     @staticmethod
     def merge_files():
         json_files = [f"buckets/inverted_index_{start}.json" for start in all_ranges]

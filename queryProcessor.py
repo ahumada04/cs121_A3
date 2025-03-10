@@ -10,7 +10,7 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'u', 'v', 'w', 'x', 'y', 'z']
 
 id_path = "buckets/id_to_url.json"
-doc_count = 30308
+doc_count = 37906
 
 
 class QueryMachine:

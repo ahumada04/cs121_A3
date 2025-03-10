@@ -20,6 +20,7 @@ STOP_WORDS = [
 ps = PorterStemmer()
 
 
+# time complexity: O(n) where n is the number of characters in the content
 def tokenize(content: str) -> list:
     if not content:
         return []
@@ -29,6 +30,7 @@ def tokenize(content: str) -> list:
         return token_list
 
 
+# Time complexity: O(n) same as above, with extra n operations to stem
 def tokenize_stemmed(content: str) -> list:
     if not content:
         return []
@@ -39,6 +41,7 @@ def tokenize_stemmed(content: str) -> list:
         return stemmed_list
 
 
+# Time complexity: O(n) same as above, with extra n operations to check in not stemmed
 def tokenize_query(query: str) -> list:
     if not query:
         return []
@@ -52,6 +55,7 @@ def tokenize_query(query: str) -> list:
         return token_list
 
 
+# Time complexity: O(A+B) with a and b being the length of the respective lists
 def union_tokens(token_list, stemmed_list):
     all_list = []
     for token, stemmed in zip(token_list, stemmed_list):
@@ -61,6 +65,7 @@ def union_tokens(token_list, stemmed_list):
     return all_list
 
 
+# Time complexity: O(n*logn) as we sort our list of tokens, with n being number of tokens
 def computeWordFrequencies(token_list: list) -> dict:
     token_dict = {}
 
