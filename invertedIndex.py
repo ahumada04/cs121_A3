@@ -71,7 +71,6 @@ class Indexer:
     # MODIFIED
     def push_to_inverted_index(self, url, content, title, heading, bold_text):
         # raw token/ term frequency
-        # raw token/ term frequency
         tokens = tokenizer.tokenize(content)
         stemmed_tokens = tokenizer.tokenize_stemmed(content)
         token_list = tokenizer.union_tokens(tokens, stemmed_tokens)
@@ -85,25 +84,23 @@ class Indexer:
         current_id = self.assign_id(url, token_list)
 
         for token, frequency in tokens_dict.items():
-            # Fluffing up frequency count within a document to increase TF-IDF score
-            # Update scores AS WE GO
+            value_list = [frequency]
             if token in title_set:
-                frequency = frequency * 2
+                value_list.append(-1)
             if token in heading_set:
-                frequency = frequency * 1.5
+                value_list.append(-2)
             if token in bold_set:
-                frequency = frequency * 1.2
-
-            starting_char = token[0].lower()
+                value_list.append(-3)
 
             # Determine which range the token belongs to
+            bucket = token[0].lower()
             for start in all_ranges:
-                if start == starting_char:
+                if start == bucket:
                     range_key = f"{start}"
                     if token not in self.inverted_indexes[range_key]:
-                        self.inverted_indexes[range_key][token] = {current_id: frequency}
+                        self.inverted_indexes[range_key][token] = {current_id: value_list}
                     else:
-                        self.inverted_indexes[range_key][token].update({current_id: frequency})
+                        self.inverted_indexes[range_key][token].update({current_id: value_list})
                     break
 
         # self.inverted_index[token].update({current_id: frequency})
@@ -116,7 +113,7 @@ class Indexer:
         for _, (old_url, old_hash) in self.id_to_url.items():
             if url == old_url:
                 return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
-            if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
+            if self.hasher.hamming_distance(old_hash, cur_hash) <= 6:
                 return -1
 
         if self.doc_id not in self.id_to_url:

@@ -10,7 +10,7 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'u', 'v', 'w', 'x', 'y', 'z']
 
 id_path = "buckets/id_to_url.json"
-doc_count = 30308
+doc_count = 37125
 
 
 class QueryMachine:
@@ -94,9 +94,19 @@ class QueryMachine:
     # as well len() operator on dictionaries is a O(1) operation
     def calc_score(self, term, docid):
         bucket = term[0]
-        term_frq = self.inverted_indexes[bucket][term][docid]
+        term_values = self.inverted_indexes[bucket][term][docid]
+        term_frq = math.log(term_values[0])
         term_oc = len(self.inverted_indexes[bucket][term])
-        return (1 + math.log(term_frq)) * math.log(doc_count / term_oc)
+
+        for i in range(1, len(term_values)):
+            if term_values[i] == -1:
+                term_frq *= 1.4
+            elif term_values[i] == -2:
+                term_frq *= 1.2
+            elif term_values[i] == -3:
+                term_frq *= 1.1
+
+        return (1 + term_frq) * math.log(doc_count / term_oc)
 
     # returns top urls, ordered (by score) doc_ids to retrieve
     # O(N*M), Where N is the number of document ids passed in and M is the number of tokens.
@@ -106,6 +116,7 @@ class QueryMachine:
         token_max = [0] * len(query_tokens)  # list of tuples containing token : max score (of that term)
         # CUT DOWN FOR FASTER PROCESSING
         threshold = 100  # counts down until we've reached 50 "suitable" documents (UPDATE GIVEN TIME)
+        print(f"THRESHOLD SET TO : {threshold}")
         ranked_doc_ids = []
 
         # Go down the list is depleted or pulled 20 worthwhile documents
@@ -118,7 +129,7 @@ class QueryMachine:
 
             for i, token in enumerate(query_tokens):
                 tfidf = self.calc_score(token, doc)
-                potential = self.potential_max(token_max[i+1:])
+                potential = 1.2 * (self.potential_max(token_max[i+1:]))
 
                 if (doc_score + tfidf + potential) < score_max:
                     skip_doc = True
@@ -151,6 +162,7 @@ class QueryMachine:
 # O(N), Where N is the size of the bucket needed to be opened/ read
 def open_inverted(token):
     starting_char = token[0]
+    # THIS IF BLOCK IS ONLY FOR OPENING DOC ID LIST
     if token == id_path:  # opening id_to_url
         with open(token, "rb") as file:
             return orjson.loads(file.read())
@@ -164,36 +176,3 @@ def open_inverted(token):
             break
     # somehow wasn't found, shouldn't happen
     return {}
-
-
-# def intersect(term_list1, term_list2):
-#     # TEMP CODE UNTIL WE CAN FIX SORTED INTERSECTION
-#     # term_list one is the lesser than
-#     intersection = set()
-#
-#     term_list1.sort()
-#     term_list2.sort()
-#
-#     length_i = len(term_list1)
-#     length_j = len(term_list2)
-#
-#     i = 0
-#     j = 0
-#
-#     while i < length_i and j < length_j:
-#         if term_list1[i] == term_list2[j]:
-#             intersection.add(term_list1[i])
-#             i += 1
-#             j += 1
-#         elif term_list1[i] < term_list2[j]:
-#             i += 1
-#         else:
-#             j += 1
-#
-#         if i < length_i and j < length_j and (term_list1[i] > term_list2[-1] or term_list2[j] > term_list1[-1]):
-#             break
-#
-#     # intersection_set = set(term_list1) & set(term_list2)
-#     # intersection_list = list(intersection_set)
-#     # intersection_list.sort()
-#     return list(intersection)
