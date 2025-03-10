@@ -10,15 +10,16 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'u', 'v', 'w', 'x', 'y', 'z']
 
 id_path = "buckets/id_to_url.json"
-doc_count = 37125
+doc_count = 30817
 
 
 class QueryMachine:
+    # O(N), N being the length of our doc_count above.
     def __init__(self):
         self.inverted_indexes = {}  # dictionary of our needed dictionaries
         self.id_to_url = open_inverted(id_path)  # Load once
 
-
+    # O(A+B+C), the heaviest operation being opening our needed "buckets"
     def retrieveURLS(self, query):
         query_tokens = tk.tokenize_query(query)
         doc_ids = self.query_document_match(query_tokens)
@@ -80,11 +81,6 @@ class QueryMachine:
         # intersection_list.sort()
         return list(intersection)
 
-        # intersection_set = set(term_list1) & set(term_list2)
-        # intersection_list = list(intersection_set)
-        # intersection_list.sort()
-        # return intersection_list
-
     # O(N), where N is the number of docids passed in to retrieve urls
     def geturls(self, id_list):
         return [self.id_to_url[doc_id][0] for doc_id in id_list if doc_id in self.id_to_url]
@@ -100,11 +96,11 @@ class QueryMachine:
 
         for i in range(1, len(term_values)):
             if term_values[i] == -1:
-                term_frq *= 1.4
+                term_frq *= 2
             elif term_values[i] == -2:
-                term_frq *= 1.2
+                term_frq *= 1.5
             elif term_values[i] == -3:
-                term_frq *= 1.1
+                term_frq *= 1.2
 
         return (1 + term_frq) * math.log(doc_count / term_oc)
 
@@ -129,7 +125,8 @@ class QueryMachine:
 
             for i, token in enumerate(query_tokens):
                 tfidf = self.calc_score(token, doc)
-                potential = 1.2 * (self.potential_max(token_max[i+1:]))
+                # ADDED 1.2 OF FLEX, UP IF QUERIES SUCK
+                potential = 1.3 * (self.potential_max(token_max[i+1:]))
 
                 if (doc_score + tfidf + potential) < score_max:
                     skip_doc = True
