@@ -88,11 +88,11 @@ class Indexer:
             # Fluffing up frequency count within a document to increase TF-IDF score
             # Update scores AS WE GO
             if token in title_set:
-                frequency = frequency * 2
+                frequency = frequency * 5
             if token in heading_set:
-                frequency = frequency * 1.5
+                frequency = frequency * 3
             if token in bold_set:
-                frequency = frequency * 1.2
+                frequency = frequency * 2
 
             starting_char = token[0].lower()
 
@@ -116,7 +116,7 @@ class Indexer:
         for _, (old_url, old_hash) in self.id_to_url.items():
             if url == old_url:
                 return -1  # signal this id is BEING PASSED, do NOT bother tokenizing
-            if self.hasher.hamming_distance(old_hash, cur_hash) <= 3:
+            if self.hasher.hamming_distance(old_hash, cur_hash) <= 6:
                 return -1
 
         if self.doc_id not in self.id_to_url:

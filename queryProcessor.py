@@ -10,7 +10,7 @@ all_ranges = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
               'u', 'v', 'w', 'x', 'y', 'z']
 
 id_path = "buckets/id_to_url.json"
-doc_count = 30308
+doc_count = 30817
 
 
 class QueryMachine:
@@ -28,6 +28,7 @@ class QueryMachine:
     # O(A+B+C) where A, B, C are the sizes of inverted indexes opened given a query
     # Our heaviest operation by far
     def query_document_match(self, query_tokens) -> list:
+        self.inverted_indexes.clear()
         intersection_queue = []
         for token in query_tokens:
             bucket = token[0]
