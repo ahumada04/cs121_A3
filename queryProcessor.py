@@ -126,7 +126,7 @@ class QueryMachine:
             for i, token in enumerate(query_tokens):
                 tfidf = self.calc_score(token, doc)
                 # ADDED 1.2 OF FLEX, UP IF QUERIES SUCK
-                potential = 1.3 * (self.potential_max(token_max[i+1:]))
+                potential = 1.2 * (self.potential_max(token_max[i+1:]))
 
                 if (doc_score + tfidf + potential) < score_max:
                     skip_doc = True
